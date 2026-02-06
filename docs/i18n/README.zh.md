@@ -3,11 +3,11 @@
 ---
 <h1 align="center">
   <br>
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/thedotmack/codex-mem">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Codex-Mem" width="400">
     </picture>
   </a>
   <br>
@@ -64,9 +64,9 @@
 <p align="center">
   <a href="https://trendshift.io/repositories/15496" target="_blank">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/claude-mem | Trendshift" width="250" height="55"/>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge.svg">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/codex-mem | Trendshift" width="250" height="55"/>
     </picture>
   </a>
 </p>
@@ -74,9 +74,9 @@
 <br>
 
 <p align="center">
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/thedotmack/codex-mem">
     <picture>
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/cm-preview.gif" alt="Codex-Mem Preview" width="800">
     </picture>
   </a>
 </p>
@@ -92,7 +92,7 @@
 </p>
 
 <p align="center">
-  Claude-Mem 通过自动捕获工具使用观察、生成语义摘要并使其可用于未来会话,无缝保留跨会话的上下文。这使 Claude 能够在会话结束或重新连接后仍保持对项目的知识连续性。
+  Codex-Mem 通过自动捕获工具使用观察、生成语义摘要并使其可用于未来会话,无缝保留跨会话的上下文。这使 Claude 能够在会话结束或重新连接后仍保持对项目的知识连续性。
 </p>
 
 ---
@@ -102,9 +102,9 @@
 在终端中启动新的 Claude Code 会话并输入以下命令:
 
 ```
-> /plugin marketplace add thedotmack/claude-mem
+> /plugin marketplace add thedotmack/codex-mem
 
-> /plugin install claude-mem
+> /plugin install codex-mem
 ```
 
 重启 Claude Code。来自先前会话的上下文将自动出现在新会话中。
@@ -130,31 +130,31 @@
 
 ### 入门指南
 
-- **[安装指南](https://docs.claude-mem.ai/installation)** - 快速开始与高级安装
-- **[使用指南](https://docs.claude-mem.ai/usage/getting-started)** - Claude-Mem 如何自动工作
-- **[搜索工具](https://docs.claude-mem.ai/usage/search-tools)** - 使用自然语言查询项目历史
-- **[测试版功能](https://docs.claude-mem.ai/beta-features)** - 尝试实验性功能,如无尽模式
+- **[安装指南](https://docs.codex-mem.ai/installation)** - 快速开始与高级安装
+- **[使用指南](https://docs.codex-mem.ai/usage/getting-started)** - Codex-Mem 如何自动工作
+- **[搜索工具](https://docs.codex-mem.ai/usage/search-tools)** - 使用自然语言查询项目历史
+- **[测试版功能](https://docs.codex-mem.ai/beta-features)** - 尝试实验性功能,如无尽模式
 
 ### 最佳实践
 
-- **[上下文工程](https://docs.claude-mem.ai/context-engineering)** - AI 代理上下文优化原则
-- **[渐进式披露](https://docs.claude-mem.ai/progressive-disclosure)** - Claude-Mem 上下文启动策略背后的哲学
+- **[上下文工程](https://docs.codex-mem.ai/context-engineering)** - AI 代理上下文优化原则
+- **[渐进式披露](https://docs.codex-mem.ai/progressive-disclosure)** - Codex-Mem 上下文启动策略背后的哲学
 
 ### 架构
 
-- **[概述](https://docs.claude-mem.ai/architecture/overview)** - 系统组件与数据流
-- **[架构演进](https://docs.claude-mem.ai/architecture-evolution)** - 从 v3 到 v5 的旅程
-- **[钩子架构](https://docs.claude-mem.ai/hooks-architecture)** - Claude-Mem 如何使用生命周期钩子
-- **[钩子参考](https://docs.claude-mem.ai/architecture/hooks)** - 7 个钩子脚本详解
-- **[Worker 服务](https://docs.claude-mem.ai/architecture/worker-service)** - HTTP API 与 Bun 管理
-- **[数据库](https://docs.claude-mem.ai/architecture/database)** - SQLite 模式与 FTS5 搜索
-- **[搜索架构](https://docs.claude-mem.ai/architecture/search-architecture)** - 使用 Chroma 向量数据库的混合搜索
+- **[概述](https://docs.codex-mem.ai/architecture/overview)** - 系统组件与数据流
+- **[架构演进](https://docs.codex-mem.ai/architecture-evolution)** - 从 v3 到 v5 的旅程
+- **[钩子架构](https://docs.codex-mem.ai/hooks-architecture)** - Codex-Mem 如何使用生命周期钩子
+- **[钩子参考](https://docs.codex-mem.ai/architecture/hooks)** - 7 个钩子脚本详解
+- **[Worker 服务](https://docs.codex-mem.ai/architecture/worker-service)** - HTTP API 与 Bun 管理
+- **[数据库](https://docs.codex-mem.ai/architecture/database)** - SQLite 模式与 FTS5 搜索
+- **[搜索架构](https://docs.codex-mem.ai/architecture/search-architecture)** - 使用 Chroma 向量数据库的混合搜索
 
 ### 配置与开发
 
-- **[配置](https://docs.claude-mem.ai/configuration)** - 环境变量与设置
-- **[开发](https://docs.claude-mem.ai/development)** - 构建、测试、贡献
-- **[故障排除](https://docs.claude-mem.ai/troubleshooting)** - 常见问题与解决方案
+- **[配置](https://docs.codex-mem.ai/configuration)** - 环境变量与设置
+- **[开发](https://docs.codex-mem.ai/development)** - 构建、测试、贡献
+- **[故障排除](https://docs.codex-mem.ai/troubleshooting)** - 常见问题与解决方案
 
 ---
 
@@ -169,13 +169,13 @@
 5. **mem-search 技能** - 具有渐进式披露的自然语言查询
 6. **Chroma 向量数据库** - 混合语义 + 关键词搜索,实现智能上下文检索
 
-详见[架构概述](https://docs.claude-mem.ai/architecture/overview)。
+详见[架构概述](https://docs.codex-mem.ai/architecture/overview)。
 
 ---
 
 ## mem-search 技能
 
-Claude-Mem 通过 mem-search 技能提供智能搜索,当您询问过去的工作时会自动调用:
+Codex-Mem 通过 mem-search 技能提供智能搜索,当您询问过去的工作时会自动调用:
 
 **工作方式:**
 - 只需自然提问:*"上次会话我们做了什么?"* 或 *"我们之前修复过这个 bug 吗?"*
@@ -204,15 +204,15 @@ Claude-Mem 通过 mem-search 技能提供智能搜索,当您询问过去的工�
 "What was happening when we added the viewer UI?"
 ```
 
-详见[搜索工具指南](https://docs.claude-mem.ai/usage/search-tools)的详细示例。
+详见[搜索工具指南](https://docs.codex-mem.ai/usage/search-tools)的详细示例。
 
 ---
 
 ## 测试版功能
 
-Claude-Mem 提供**测试版渠道**,包含实验性功能,如**无尽模式**(用于扩展会话的仿生记忆架构)。从 Web 查看器界面 http://localhost:37777 → 设置 切换稳定版和测试版。
+Codex-Mem 提供**测试版渠道**,包含实验性功能,如**无尽模式**(用于扩展会话的仿生记忆架构)。从 Web 查看器界面 http://localhost:37777 → 设置 切换稳定版和测试版。
 
-详见**[测试版功能文档](https://docs.claude-mem.ai/beta-features)**了解无尽模式的详细信息和试用方法。
+详见**[测试版功能文档](https://docs.codex-mem.ai/beta-features)**了解无尽模式的详细信息和试用方法。
 
 ---
 
@@ -228,15 +228,15 @@ Claude-Mem 提供**测试版渠道**,包含实验性功能,如**无尽模式**(�
 
 ## 配置
 
-设置在 `~/.claude-mem/settings.json` 中管理(首次运行时自动创建默认设置)。可配置 AI 模型、worker 端口、数据目录、日志级别和上下文注入设置。
+设置在 `~/.codex-mem/settings.json` 中管理(首次运行时自动创建默认设置)。可配置 AI 模型、worker 端口、数据目录、日志级别和上下文注入设置。
 
-详见**[配置指南](https://docs.claude-mem.ai/configuration)**了解所有可用设置和示例。
+详见**[配置指南](https://docs.codex-mem.ai/configuration)**了解所有可用设置和示例。
 
 ---
 
 ## 开发
 
-详见**[开发指南](https://docs.claude-mem.ai/development)**了解构建说明、测试和贡献工作流程。
+详见**[开发指南](https://docs.codex-mem.ai/development)**了解构建说明、测试和贡献工作流程。
 
 ---
 
@@ -244,7 +244,7 @@ Claude-Mem 提供**测试版渠道**,包含实验性功能,如**无尽模式**(�
 
 如果遇到问题,向 Claude 描述问题,troubleshoot 技能将自动诊断并提供修复方案。
 
-详见**[故障排除指南](https://docs.claude-mem.ai/troubleshooting)**了解常见问题和解决方案。
+详见**[故障排除指南](https://docs.codex-mem.ai/troubleshooting)**了解常见问题和解决方案。
 
 ---
 
@@ -267,7 +267,7 @@ npm run bug-report
 4. 更新文档
 5. 提交 Pull Request
 
-详见[开发指南](https://docs.claude-mem.ai/development)了解贡献工作流程。
+详见[开发指南](https://docs.codex-mem.ai/development)了解贡献工作流程。
 
 ---
 
@@ -293,8 +293,8 @@ Copyright (C) 2025 Alex Newman (@thedotmack)。保留所有权利。
 ## 支持
 
 - **文档**: [docs/](docs/)
-- **问题反馈**: [GitHub Issues](https://github.com/thedotmack/claude-mem/issues)
-- **仓库**: [github.com/thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+- **问题反馈**: [GitHub Issues](https://github.com/thedotmack/codex-mem/issues)
+- **仓库**: [github.com/thedotmack/codex-mem](https://github.com/thedotmack/codex-mem)
 - **作者**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
 
 ---

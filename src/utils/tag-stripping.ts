@@ -2,7 +2,7 @@
  * Tag Stripping Utilities
  *
  * Implements the dual-tag system for meta-observation control:
- * 1. <claude-mem-context> - System-level tag for auto-injected observations
+ * 1. <codex-mem-context> / <claude-mem-context> - System-level tags for auto-injected observations
  *    (prevents recursive storage when context injection is active)
  * 2. <private> - User-level tag for manual privacy control
  *    (allows users to mark content they don't want persisted)
@@ -12,6 +12,9 @@
  */
 
 import { logger } from './logger.js';
+
+const LEGACY_CONTEXT_TAG_OPEN = '<claude-mem-context>';
+const CANONICAL_CONTEXT_TAG_OPEN = '<codex-mem-context>';
 
 /**
  * Maximum number of tags allowed in a single content block
@@ -26,7 +29,9 @@ const MAX_TAG_COUNT = 100;
  */
 function countTags(content: string): number {
   const privateCount = (content.match(/<private>/g) || []).length;
-  const contextCount = (content.match(/<claude-mem-context>/g) || []).length;
+  const legacyContextCount = (content.match(new RegExp(LEGACY_CONTEXT_TAG_OPEN, 'g')) || []).length;
+  const canonicalContextCount = (content.match(new RegExp(CANONICAL_CONTEXT_TAG_OPEN, 'g')) || []).length;
+  const contextCount = legacyContextCount + canonicalContextCount;
   return privateCount + contextCount;
 }
 
@@ -47,6 +52,7 @@ function stripTagsInternal(content: string): string {
   }
 
   return content
+    .replace(/<codex-mem-context>[\s\S]*?<\/codex-mem-context>/g, '')
     .replace(/<claude-mem-context>[\s\S]*?<\/claude-mem-context>/g, '')
     .replace(/<private>[\s\S]*?<\/private>/g, '')
     .trim();

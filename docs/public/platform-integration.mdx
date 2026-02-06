@@ -1,12 +1,12 @@
 ---
 title: Platform Integration Guide
-description: Complete reference for integrating claude-mem worker service into VSCode extensions, IDE plugins, and CLI tools
+description: Complete reference for integrating codex-mem worker service into VSCode extensions, IDE plugins, and CLI tools
 icon: plug
 ---
 
 <Note>
 **Version:** 7.0.0 (December 2025)
-**Target Audience:** Developers building claude-mem integrations (VSCode extensions, IDE plugins, CLI tools)
+**Target Audience:** Developers building codex-mem integrations (VSCode extensions, IDE plugins, CLI tools)
 </Note>
 
 ## Quick Reference
@@ -167,7 +167,7 @@ Content-Type: application/json
 
 <Info>
 **Privacy Check:** Skips if user prompt was entirely wrapped in `<private>` tags.
-**Tag Stripping:** Removes `<private>` and `<claude-mem-context>` tags before storage.
+**Tag Stripping:** Removes `<private>` and `<codex-mem-context>` tags before storage.
 **Auto-Start:** Ensures SDK agent generator is running to process the queue.
 </Info>
 
@@ -314,7 +314,7 @@ GET /api/stats
     "port": 37777
   },
   "database": {
-    "path": "~/.claude-mem/claude-mem.db",
+    "path": "~/.codex-mem/codex-mem.db",
     "size": 1048576,
     "observations": 500,
     "sessions": 50,
@@ -331,7 +331,7 @@ GET /api/projects
 
 ```json Response
 {
-  "projects": ["claude-mem", "other-project", ...]
+  "projects": ["codex-mem", "other-project", ...]
 }
 ```
 
@@ -889,13 +889,13 @@ const searchTool: SearchTool = {
 };
 
 // Register tool
-vscode.lm.registerTool('claude-mem-search', searchTool);
+vscode.lm.registerTool('codex-mem-search', searchTool);
 ```
 
 #### Chat Participant Implementation
 
 ```typescript
-const participant = vscode.chat.createChatParticipant('claude-mem', async (request, context, stream, token) => {
+const participant = vscode.chat.createChatParticipant('codex-mem', async (request, context, stream, token) => {
   const claudeSessionId = context.session.id;
 
   // First message in conversation - no initialization needed
@@ -990,7 +990,7 @@ async function isWorkerHealthy(): Promise<boolean> {
 <Info>
 The worker automatically strips privacy tags before storage:
 - `<private>content</private>` - User-level privacy control
-- `<claude-mem-context>content</claude-mem-context>` - System-level tag (prevents recursive storage)
+- `<codex-mem-context>content</codex-mem-context>` - System-level tag (prevents recursive storage)
 
 **Privacy Check:** Observations/summaries are skipped if the entire user prompt was wrapped in `<private>` tags.
 </Info>
@@ -1083,7 +1083,7 @@ esbuild.build({
 
 ```json
 {
-  "name": "claude-mem-vscode",
+  "name": "codex-mem-vscode",
   "displayName": "Claude-Mem",
   "version": "1.0.0",
   "engines": {
@@ -1096,14 +1096,14 @@ esbuild.build({
   "contributes": {
     "chatParticipants": [
       {
-        "id": "claude-mem",
+        "id": "codex-mem",
         "name": "memory",
         "description": "Search your persistent memory"
       }
     ],
     "languageModelTools": [
       {
-        "name": "claude-mem-search",
+        "name": "codex-mem-search",
         "displayName": "Search Memory",
         "description": "Search persistent memory for observations, sessions, and prompts"
       }
@@ -1408,7 +1408,7 @@ import { WorkerClient } from './WorkerClient';
 export function registerSearchTool(context: vscode.ExtensionContext) {
   const client = new WorkerClient();
 
-  const searchTool = vscode.lm.registerTool('claude-mem-search', {
+  const searchTool = vscode.lm.registerTool('codex-mem-search', {
     description: 'Search persistent memory for observations, sessions, and prompts',
     inputSchema: {
       type: 'object',
@@ -1525,10 +1525,10 @@ const userMessage = '<private>API key: sk-1234567890</private>';
 ## Additional Resources
 
 <CardGroup cols={2}>
-  <Card title="Documentation" icon="book" href="https://claude-mem.ai">
-    Complete claude-mem documentation
+  <Card title="Documentation" icon="book" href="https://codex-mem.ai">
+    Complete codex-mem documentation
   </Card>
-  <Card title="GitHub" icon="github" href="https://github.com/thedotmack/claude-mem">
+  <Card title="GitHub" icon="github" href="https://github.com/thedotmack/codex-mem">
     Source code and issue tracker
   </Card>
   <Card title="Worker Service" icon="server" href="/architecture/worker-service">

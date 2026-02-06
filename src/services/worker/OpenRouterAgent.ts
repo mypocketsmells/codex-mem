@@ -348,8 +348,8 @@ export class OpenRouterAgent {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': siteUrl || 'https://github.com/thedotmack/claude-mem',
-        'X-Title': appName || 'claude-mem',
+        'HTTP-Referer': siteUrl || 'https://github.com/thedotmack/codex-mem',
+        'X-Title': appName || 'codex-mem',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -410,13 +410,13 @@ export class OpenRouterAgent {
 
   /**
    * Get OpenRouter configuration from settings or environment
-   * Issue #733: Uses centralized ~/.claude-mem/.env for credentials, not random project .env files
+   * Issue #733: Uses centralized data-dir .env for credentials, not random project .env files
    */
   private getOpenRouterConfig(): { apiKey: string; model: string; siteUrl?: string; appName?: string } {
     const settingsPath = USER_SETTINGS_PATH;
     const settings = SettingsDefaultsManager.loadFromFile(settingsPath);
 
-    // API key: check settings first, then centralized claude-mem .env (NOT process.env)
+    // API key: check settings first, then centralized data-dir .env (NOT process.env)
     // This prevents Issue #733 where random project .env files could interfere
     const apiKey = settings.CLAUDE_MEM_OPENROUTER_API_KEY || getCredential('OPENROUTER_API_KEY') || '';
 
@@ -425,7 +425,7 @@ export class OpenRouterAgent {
 
     // Optional analytics headers
     const siteUrl = settings.CLAUDE_MEM_OPENROUTER_SITE_URL || '';
-    const appName = settings.CLAUDE_MEM_OPENROUTER_APP_NAME || 'claude-mem';
+    const appName = settings.CLAUDE_MEM_OPENROUTER_APP_NAME || 'codex-mem';
 
     return { apiKey, model, siteUrl, appName };
   }
@@ -433,7 +433,7 @@ export class OpenRouterAgent {
 
 /**
  * Check if OpenRouter is available (has API key configured)
- * Issue #733: Uses centralized ~/.claude-mem/.env, not random project .env files
+ * Issue #733: Uses centralized data-dir .env, not random project .env files
  */
 export function isOpenRouterAvailable(): boolean {
   const settingsPath = USER_SETTINGS_PATH;

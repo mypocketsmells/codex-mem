@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { DEFAULT_OBSERVATION_TYPES_STRING, DEFAULT_OBSERVATION_CONCEPTS_STRING } from '../constants/observation-metadata.js';
+import { CANONICAL_PRODUCT_NAME, resolveDefaultDataDir } from './product-config.js';
 // NOTE: Do NOT import logger here - it creates a circular dependency
 // logger.ts depends on SettingsDefaultsManager for its initialization
 
@@ -72,11 +73,11 @@ export class SettingsDefaultsManager {
     CLAUDE_MEM_OPENROUTER_API_KEY: '',  // Empty by default, can be set via UI or env
     CLAUDE_MEM_OPENROUTER_MODEL: 'xiaomi/mimo-v2-flash:free',  // Default OpenRouter model (free tier)
     CLAUDE_MEM_OPENROUTER_SITE_URL: '',  // Optional: for OpenRouter analytics
-    CLAUDE_MEM_OPENROUTER_APP_NAME: 'claude-mem',  // App name for OpenRouter analytics
+    CLAUDE_MEM_OPENROUTER_APP_NAME: CANONICAL_PRODUCT_NAME,  // App name for OpenRouter analytics
     CLAUDE_MEM_OPENROUTER_MAX_CONTEXT_MESSAGES: '20',  // Max messages in context window
     CLAUDE_MEM_OPENROUTER_MAX_TOKENS: '100000',  // Max estimated tokens (~100k safety limit)
     // System Configuration
-    CLAUDE_MEM_DATA_DIR: join(homedir(), '.claude-mem'),
+    CLAUDE_MEM_DATA_DIR: resolveDefaultDataDir(),
     CLAUDE_MEM_LOG_LEVEL: 'INFO',
     CLAUDE_MEM_PYTHON_VERSION: '3.13',
     CLAUDE_CODE_PATH: '', // Empty means auto-detect via 'which claude'
@@ -148,7 +149,7 @@ export class SettingsDefaultsManager {
         } catch (error) {
           console.warn('[SETTINGS] Failed to create settings file, using in-memory defaults:', settingsPath, error);
         }
-        return defaults;
+        return this.applyEnvironmentOverrides(defaults);
       }
 
       const settingsData = readFileSync(settingsPath, 'utf-8');
@@ -178,10 +179,40 @@ export class SettingsDefaultsManager {
         }
       }
 
-      return result;
+      return this.applyEnvironmentOverrides(result);
     } catch (error) {
       console.warn('[SETTINGS] Failed to load settings, using defaults:', settingsPath, error);
-      return this.getAllDefaults();
+      return this.applyEnvironmentOverrides(this.getAllDefaults());
     }
+  }
+
+  /**
+   * Apply environment variable overrides with compatibility guards.
+   * Supports both legacy CLAUDE_MEM_* and canonical CODEX_MEM_* keys.
+   */
+  private static applyEnvironmentOverrides(settings: SettingsDefaults): SettingsDefaults {
+    const merged = { ...settings };
+
+    for (const key of Object.keys(this.DEFAULTS) as Array<keyof SettingsDefaults>) {
+      const legacyValue = process.env[key];
+      if (legacyValue !== undefined) {
+        merged[key] = legacyValue;
+      }
+
+      if (key.startsWith('CLAUDE_MEM_')) {
+        const codexKey = (`CODEX_MEM_${key.slice('CLAUDE_MEM_'.length)}`) as keyof NodeJS.ProcessEnv;
+        const codexValue = process.env[codexKey];
+        if (codexValue !== undefined) {
+          merged[key] = codexValue;
+        }
+      }
+    }
+
+    // Optional compatibility alias for CLI path naming.
+    if (process.env.CODEX_CODE_PATH && !process.env.CLAUDE_CODE_PATH) {
+      merged.CLAUDE_CODE_PATH = process.env.CODEX_CODE_PATH;
+    }
+
+    return merged;
   }
 }

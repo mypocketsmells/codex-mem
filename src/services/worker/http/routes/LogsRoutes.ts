@@ -1,7 +1,7 @@
 /**
  * Logs Routes
  *
- * Handles fetching and clearing log files from ~/.claude-mem/logs/
+ * Handles fetching and clearing log files from configured data dir logs/
  */
 
 import express, { Request, Response } from 'express';
@@ -10,13 +10,20 @@ import { join } from 'path';
 import { logger } from '../../../../utils/logger.js';
 import { SettingsDefaultsManager } from '../../../../shared/SettingsDefaultsManager.js';
 import { BaseRouteHandler } from '../BaseRouteHandler.js';
+import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from '../../../../shared/product-config.js';
 
 export class LogsRoutes extends BaseRouteHandler {
   private getLogFilePath(): string {
     const dataDir = SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR');
     const logsDir = join(dataDir, 'logs');
     const date = new Date().toISOString().split('T')[0];
-    return join(logsDir, `claude-mem-${date}.log`);
+
+    const canonicalPath = join(logsDir, `${CANONICAL_PRODUCT_NAME}-${date}.log`);
+    const legacyPath = join(logsDir, `${LEGACY_PRODUCT_NAME}-${date}.log`);
+
+    if (existsSync(canonicalPath)) return canonicalPath;
+    if (existsSync(legacyPath)) return legacyPath;
+    return canonicalPath;
   }
 
   private getLogsDir(): string {

@@ -1,8 +1,9 @@
 {
-  "name": "claude-mem",
+  "name": "codex-mem",
   "version": "9.0.17",
-  "description": "Memory compression system for Claude Code - persist context across sessions",
+  "description": "Memory compression system for Codex and Claude-style coding workflows",
   "keywords": [
+    "codex",
     "claude",
     "claude-code",
     "claude-agent-sdk",
@@ -19,11 +20,11 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thedotmack/claude-mem.git"
+    "url": "https://github.com/thedotmack/codex-mem.git"
   },
-  "homepage": "https://github.com/thedotmack/claude-mem#readme",
+  "homepage": "https://github.com/thedotmack/codex-mem#readme",
   "bugs": {
-    "url": "https://github.com/thedotmack/claude-mem/issues"
+    "url": "https://github.com/thedotmack/codex-mem/issues"
   },
   "type": "module",
   "exports": {
@@ -52,8 +53,8 @@
     "sync-marketplace": "node scripts/sync-marketplace.cjs",
     "sync-marketplace:force": "node scripts/sync-marketplace.cjs --force",
     "build:binaries": "node scripts/build-worker-binary.js",
-    "worker:logs": "tail -n 50 ~/.claude-mem/logs/worker-$(date +%Y-%m-%d).log",
-    "worker:tail": "tail -f 50 ~/.claude-mem/logs/worker-$(date +%Y-%m-%d).log",
+    "worker:logs": "MEM_DIR=\"${CODEX_MEM_DATA_DIR:-${CLAUDE_MEM_DATA_DIR:-$HOME/.codex-mem}}\"; [ -d \"$MEM_DIR\" ] || MEM_DIR=\"$HOME/.claude-mem\"; tail -n 50 \"$MEM_DIR/logs/worker-$(date +%Y-%m-%d).log\"",
+    "worker:tail": "MEM_DIR=\"${CODEX_MEM_DATA_DIR:-${CLAUDE_MEM_DATA_DIR:-$HOME/.codex-mem}}\"; [ -d \"$MEM_DIR\" ] || MEM_DIR=\"$HOME/.claude-mem\"; tail -f 50 \"$MEM_DIR/logs/worker-$(date +%Y-%m-%d).log\"",
     "changelog:generate": "node scripts/generate-changelog.js",
     "discord:notify": "node scripts/discord-release-notify.js",
     "worker:start": "bun plugin/scripts/worker-service.cjs start",
@@ -63,6 +64,10 @@
     "queue": "bun scripts/check-pending-queue.ts",
     "queue:process": "bun scripts/check-pending-queue.ts --process",
     "queue:clear": "bun scripts/clear-failed-queue.ts --all --force",
+    "ingest:codex": "bun src/bin/ingest-codex-history.ts",
+    "ingest:codex:dry-run": "bun src/bin/ingest-codex-history.ts --dry-run",
+    "migrate:data-dir": "bun src/bin/migrate-data-dir.ts",
+    "migrate:data-dir:dry-run": "bun src/bin/migrate-data-dir.ts --dry-run",
     "claude-md:regenerate": "bun scripts/regenerate-claude-md.ts",
     "claude-md:dry-run": "bun scripts/regenerate-claude-md.ts --dry-run",
     "translate-readme": "bun scripts/translate-readme/cli.ts -v -o docs/i18n README.md",

@@ -1,11 +1,12 @@
 import path from "path";
 import { homedir } from "os";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { logger } from "../utils/logger.js";
 import { HOOK_TIMEOUTS, getTimeout } from "./hook-constants.js";
 import { SettingsDefaultsManager } from "./SettingsDefaultsManager.js";
 
-const MARKETPLACE_ROOT = path.join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack');
+const DEFAULT_MARKETPLACE_ROOT = path.join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack');
+const MARKETPLACE_ROOT = process.env.CODEX_MEM_INSTALL_ROOT || process.env.CLAUDE_MEM_INSTALL_ROOT || DEFAULT_MARKETPLACE_ROOT;
 
 // Named constants for health checks
 const HEALTH_CHECK_TIMEOUT_MS = getTimeout(HOOK_TIMEOUTS.HEALTH_CHECK);
@@ -95,6 +96,10 @@ async function isWorkerHealthy(): Promise<boolean> {
  */
 function getPluginVersion(): string {
   const packageJsonPath = path.join(MARKETPLACE_ROOT, 'package.json');
+  if (!existsSync(packageJsonPath)) {
+    logger.debug('SYSTEM', 'Plugin package.json not found for version check', { packageJsonPath });
+    return 'unknown';
+  }
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
   return packageJson.version;
 }
@@ -121,6 +126,7 @@ async function getWorkerVersion(): Promise<string> {
  */
 async function checkWorkerVersion(): Promise<void> {
   const pluginVersion = getPluginVersion();
+  if (pluginVersion === 'unknown') return;
   const workerVersion = await getWorkerVersion();
 
   if (pluginVersion !== workerVersion) {

@@ -1,5 +1,5 @@
 /**
- * CursorHooksInstaller - Cursor IDE integration for claude-mem
+ * CursorHooksInstaller - Cursor IDE integration for codex-mem
  *
  * Extracted from worker-service.ts monolith to provide centralized Cursor integration.
  * Handles:
@@ -11,11 +11,13 @@
 
 import path from 'path';
 import { homedir } from 'os';
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, renameSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '../../utils/logger.js';
 import { getWorkerPort } from '../../shared/worker-utils.js';
+import { SettingsDefaultsManager } from '../../shared/SettingsDefaultsManager.js';
+import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from '../../shared/product-config.js';
 import {
   readCursorRegistry as readCursorRegistryFromFile,
   writeCursorRegistry as writeCursorRegistryToFile,
@@ -25,9 +27,13 @@ import {
 import type { CursorInstallTarget, CursorHooksJson, CursorMcpConfig, Platform } from './types.js';
 
 const execAsync = promisify(exec);
+const DEFAULT_MARKETPLACE_ROOT = path.join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack');
+const MARKETPLACE_ROOT = process.env.CODEX_MEM_INSTALL_ROOT || process.env.CLAUDE_MEM_INSTALL_ROOT || DEFAULT_MARKETPLACE_ROOT;
+const CANONICAL_CONTEXT_RULE_FILE = `${CANONICAL_PRODUCT_NAME}-context.mdc`;
+const LEGACY_CONTEXT_RULE_FILE = `${LEGACY_PRODUCT_NAME}-context.mdc`;
 
 // Standard paths
-const DATA_DIR = path.join(homedir(), '.claude-mem');
+const DATA_DIR = SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR');
 const CURSOR_REGISTRY_FILE = path.join(DATA_DIR, 'cursor-projects.json');
 
 // ============================================================================
@@ -133,7 +139,7 @@ export async function updateCursorContextForProject(projectName: string, port: n
 export function findCursorHooksDir(): string | null {
   const possiblePaths = [
     // Marketplace install location
-    path.join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack', 'cursor-hooks'),
+    path.join(MARKETPLACE_ROOT, 'cursor-hooks'),
     // Development/source location (relative to built worker-service.cjs in plugin/scripts/)
     path.join(path.dirname(__filename), '..', '..', 'cursor-hooks'),
     // Alternative dev location
@@ -156,7 +162,7 @@ export function findCursorHooksDir(): string | null {
 export function findMcpServerPath(): string | null {
   const possiblePaths = [
     // Marketplace install location
-    path.join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack', 'plugin', 'scripts', 'mcp-server.cjs'),
+    path.join(MARKETPLACE_ROOT, 'plugin', 'scripts', 'mcp-server.cjs'),
     // Development/source location (relative to built worker-service.cjs in plugin/scripts/)
     path.join(path.dirname(__filename), 'mcp-server.cjs'),
     // Alternative dev location
@@ -178,7 +184,7 @@ export function findMcpServerPath(): string | null {
 export function findWorkerServicePath(): string | null {
   const possiblePaths = [
     // Marketplace install location
-    path.join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack', 'plugin', 'scripts', 'worker-service.cjs'),
+    path.join(MARKETPLACE_ROOT, 'plugin', 'scripts', 'worker-service.cjs'),
     // Development/source location (relative to built worker-service.cjs in plugin/scripts/)
     path.join(path.dirname(__filename), 'worker-service.cjs'),
     // Alternative dev location
@@ -230,7 +236,7 @@ export function configureCursorMcp(target: CursorInstallTarget): number {
 
   if (!mcpServerPath) {
     console.error('Could not find MCP server script');
-    console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/mcp-server.cjs');
+    console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/mcp-server.cjs (or CODEX_MEM_INSTALL_ROOT)');
     return 1;
   }
 
@@ -261,11 +267,17 @@ export function configureCursorMcp(target: CursorInstallTarget): number {
       }
     }
 
-    // Add claude-mem MCP server
-    config.mcpServers['claude-mem'] = {
+    // Migrate legacy server key to canonical.
+    if (config.mcpServers[LEGACY_PRODUCT_NAME] && !config.mcpServers[CANONICAL_PRODUCT_NAME]) {
+      config.mcpServers[CANONICAL_PRODUCT_NAME] = config.mcpServers[LEGACY_PRODUCT_NAME];
+    }
+
+    // Add canonical codex-mem MCP server.
+    config.mcpServers[CANONICAL_PRODUCT_NAME] = {
       command: 'node',
       args: [mcpServerPath]
     };
+    delete config.mcpServers[LEGACY_PRODUCT_NAME];
 
     writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2));
     console.log(`  Configured MCP server in ${target === 'user' ? '~/.cursor' : '.cursor'}/mcp.json`);
@@ -287,7 +299,7 @@ export function configureCursorMcp(target: CursorInstallTarget): number {
  * No longer copies shell scripts - uses node CLI directly
  */
 export async function installCursorHooks(_sourceDir: string, target: CursorInstallTarget): Promise<number> {
-  console.log(`\nInstalling Claude-Mem Cursor hooks (${target} level)...\n`);
+  console.log(`\nInstalling Codex-Mem Cursor hooks (${target} level)...\n`);
 
   const targetDir = getTargetDir(target);
   if (!targetDir) {
@@ -299,7 +311,7 @@ export async function installCursorHooks(_sourceDir: string, target: CursorInsta
   const workerServicePath = findWorkerServicePath();
   if (!workerServicePath) {
     console.error('Could not find worker-service.cjs');
-    console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs');
+    console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs (or CODEX_MEM_INSTALL_ROOT)');
     return 1;
   }
 
@@ -359,12 +371,12 @@ Hooks installed to: ${targetDir}/hooks.json
 Using unified CLI: node worker-service.cjs hook cursor <command>
 
 Next steps:
-  1. Start claude-mem worker: claude-mem start
+  1. Start codex-mem worker: codex-mem start
   2. Restart Cursor to load the hooks
   3. Check Cursor Settings → Hooks tab to verify
 
 Context Injection:
-  Context from past sessions is stored in .cursor/rules/claude-mem-context.mdc
+  Context from past sessions is stored in .cursor/rules/${CANONICAL_CONTEXT_RULE_FILE}
   and automatically included in every chat. It updates after each session ends.
 `);
 
@@ -415,17 +427,25 @@ async function setupProjectContext(targetDir: string, workspaceRoot: string): Pr
 
   if (!contextGenerated) {
     // Create placeholder context file
-    const rulesFile = path.join(rulesDir, 'claude-mem-context.mdc');
+    const rulesFile = path.join(rulesDir, CANONICAL_CONTEXT_RULE_FILE);
+    const legacyRulesFile = path.join(rulesDir, LEGACY_CONTEXT_RULE_FILE);
+    if (existsSync(legacyRulesFile) && !existsSync(rulesFile)) {
+      try {
+        renameSync(legacyRulesFile, rulesFile);
+      } catch (error) {
+        logger.debug('CURSOR', 'Failed to migrate legacy context rule file', { legacyRulesFile }, error as Error);
+      }
+    }
     const placeholderContent = `---
 alwaysApply: true
-description: "Claude-mem context from past sessions (auto-updated)"
+description: "Codex-mem context from past sessions (auto-updated)"
 ---
 
 # Memory Context from Past Sessions
 
 *No context yet. Complete your first session and context will appear here.*
 
-Use claude-mem's MCP search tools for manual memory queries.
+Use codex-mem's MCP search tools for manual memory queries.
 `;
     writeFileSync(rulesFile, placeholderContent);
     console.log(`  Created placeholder context file (will populate after first session)`);
@@ -440,7 +460,7 @@ Use claude-mem's MCP search tools for manual memory queries.
  * Uninstall Cursor hooks
  */
 export function uninstallCursorHooks(target: CursorInstallTarget): number {
-  console.log(`\nUninstalling Claude-Mem Cursor hooks (${target} level)...\n`);
+  console.log(`\nUninstalling Codex-Mem Cursor hooks (${target} level)...\n`);
 
   const targetDir = getTargetDir(target);
   if (!targetDir) {
@@ -476,8 +496,12 @@ export function uninstallCursorHooks(target: CursorInstallTarget): number {
 
     // Remove context file and unregister if project-level
     if (target === 'project') {
-      const contextFile = path.join(targetDir, 'rules', 'claude-mem-context.mdc');
-      if (existsSync(contextFile)) {
+      const contextFiles = [
+        path.join(targetDir, 'rules', CANONICAL_CONTEXT_RULE_FILE),
+        path.join(targetDir, 'rules', LEGACY_CONTEXT_RULE_FILE)
+      ];
+      for (const contextFile of contextFiles) {
+        if (!existsSync(contextFile)) continue;
         unlinkSync(contextFile);
         console.log(`  Removed context file`);
       }
@@ -502,7 +526,7 @@ export function uninstallCursorHooks(target: CursorInstallTarget): number {
  * Check Cursor hooks installation status
  */
 export function checkCursorHooksStatus(): number {
-  console.log('\nClaude-Mem Cursor Hooks Status\n');
+  console.log('\nCodex-Mem Cursor Hooks Status\n');
 
   const locations: Array<{ name: string; dir: string }> = [
     { name: 'Project', dir: path.join(process.cwd(), '.cursor') },
@@ -560,8 +584,9 @@ export function checkCursorHooksStatus(): number {
 
       // Check for context file (project only)
       if (loc.name === 'Project') {
-        const contextFile = path.join(loc.dir, 'rules', 'claude-mem-context.mdc');
-        if (existsSync(contextFile)) {
+        const canonicalContextFile = path.join(loc.dir, 'rules', CANONICAL_CONTEXT_RULE_FILE);
+        const legacyContextFile = path.join(loc.dir, 'rules', LEGACY_CONTEXT_RULE_FILE);
+        if (existsSync(canonicalContextFile) || existsSync(legacyContextFile)) {
           console.log(`   Context: Active`);
         } else {
           console.log(`   Context: Not yet generated (will be created on first prompt)`);
@@ -574,7 +599,7 @@ export function checkCursorHooksStatus(): number {
   }
 
   if (!anyInstalled) {
-    console.log('No hooks installed. Run: claude-mem cursor install\n');
+    console.log('No hooks installed. Run: codex-mem cursor install\n');
   }
 
   return 0;
@@ -616,7 +641,7 @@ export async function handleCursorCommand(subcommand: string, args: string[]): P
 
       if (!cursorHooksDir) {
         console.error('Could not find cursor-hooks directory');
-        console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/cursor-hooks/');
+        console.error('   Expected at: ~/.claude/plugins/marketplaces/thedotmack/cursor-hooks/ (or CODEX_MEM_INSTALL_ROOT)');
         return 1;
       }
 
@@ -641,9 +666,9 @@ export async function handleCursorCommand(subcommand: string, args: string[]): P
 
     default: {
       console.log(`
-Claude-Mem Cursor Integration
+Codex-Mem Cursor Integration
 
-Usage: claude-mem cursor <command> [options]
+Usage: codex-mem cursor <command> [options]
 
 Commands:
   setup               Interactive guided setup (recommended for first-time users)
@@ -659,11 +684,11 @@ Commands:
 Examples:
   npm run cursor:setup                   # Interactive wizard (recommended)
   npm run cursor:install                 # Install for current project
-  claude-mem cursor install user         # Install globally for user
-  claude-mem cursor uninstall            # Remove from current project
-  claude-mem cursor status               # Check if hooks are installed
+  codex-mem cursor install user          # Install globally for user
+  codex-mem cursor uninstall             # Remove from current project
+  codex-mem cursor status                # Check if hooks are installed
 
-For more info: https://docs.claude-mem.ai/cursor
+For more info: https://docs.codex-mem.ai/cursor
       `);
       return 0;
     }

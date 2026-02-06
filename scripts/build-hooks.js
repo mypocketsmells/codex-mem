@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Build script for claude-mem hooks
+ * Build script for codex-mem hooks
  * Bundles TypeScript hooks into individual standalone executables using esbuild
  */
 
@@ -28,7 +28,7 @@ const CONTEXT_GENERATOR = {
 };
 
 async function buildHooks() {
-  console.log('🔨 Building claude-mem hooks and worker service...\n');
+  console.log('🔨 Building codex-mem hooks and worker service...\n');
 
   try {
     // Read version from package.json
@@ -53,10 +53,10 @@ async function buildHooks() {
     // Note: bun:sqlite is a Bun built-in, no external dependencies needed for SQLite
     console.log('\n📦 Generating plugin package.json...');
     const pluginPackageJson = {
-      name: 'claude-mem-plugin',
+      name: 'codex-mem-plugin',
       version: version,
       private: true,
-      description: 'Runtime dependencies for claude-mem bundled hooks',
+      description: 'Runtime dependencies for codex-mem bundled hooks',
       type: 'module',
       dependencies: {},
       engines: {

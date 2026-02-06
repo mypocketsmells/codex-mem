@@ -1,3 +1,3 @@
-<claude-mem-context>
+<codex-mem-context>
 
-</claude-mem-context>
+</codex-mem-context>

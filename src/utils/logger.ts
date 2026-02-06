@@ -1,11 +1,11 @@
 /**
- * Structured Logger for claude-mem Worker Service
+ * Structured Logger for codex-mem Worker Service
  * Provides readable, traceable logging with correlation IDs and data flow tracking
  */
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
+import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME, resolveDefaultDataDir } from '../shared/product-config.js';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -24,9 +24,8 @@ interface LogContext {
   [key: string]: any;
 }
 
-// NOTE: This default must match DEFAULT_DATA_DIR in src/shared/SettingsDefaultsManager.ts
-// Inlined here to avoid circular dependency with SettingsDefaultsManager
-const DEFAULT_DATA_DIR = join(homedir(), '.claude-mem');
+// NOTE: Keep logger path resolution independent of SettingsDefaultsManager to avoid circular dependencies.
+const DEFAULT_DATA_DIR = resolveDefaultDataDir();
 
 class Logger {
   private level: LogLevel | null = null;
@@ -57,9 +56,12 @@ class Logger {
         mkdirSync(logsDir, { recursive: true });
       }
 
-      // Create log file path with date
+      // Create log file path with date (canonical prefix, fallback to legacy file if it exists).
       const date = new Date().toISOString().split('T')[0];
-      this.logFilePath = join(logsDir, `claude-mem-${date}.log`);
+      const canonicalLogFilePath = join(logsDir, `${CANONICAL_PRODUCT_NAME}-${date}.log`);
+      const legacyLogFilePath = join(logsDir, `${LEGACY_PRODUCT_NAME}-${date}.log`);
+      this.logFilePath = existsSync(canonicalLogFilePath) ? canonicalLogFilePath
+        : (existsSync(legacyLogFilePath) ? legacyLogFilePath : canonicalLogFilePath);
     } catch (error) {
       // If log file initialization fails, just log to console
       console.error('[LOGGER] Failed to initialize log file:', error);

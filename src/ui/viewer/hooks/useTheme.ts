@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
 
-const STORAGE_KEY = 'claude-mem-theme';
+const STORAGE_KEY = 'codex-mem-theme';
+const LEGACY_STORAGE_KEY = 'claude-mem-theme';
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === 'undefined') return 'dark';
@@ -12,7 +13,7 @@ function getSystemTheme(): ResolvedTheme {
 
 function getStoredPreference(): ThemePreference {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (stored === 'system' || stored === 'light' || stored === 'dark') {
       return stored;
     }
@@ -60,6 +61,7 @@ export function useTheme() {
   const setThemePreference = (newPreference: ThemePreference) => {
     try {
       localStorage.setItem(STORAGE_KEY, newPreference);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
       setPreference(newPreference);
     } catch (e) {
       console.warn('Failed to save theme preference to localStorage:', e);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Smart Install Script for claude-mem
+ * Smart Install Script for codex-mem
  *
  * Ensures Bun runtime and uv (Python package manager) are installed
  * (auto-installs if missing) and handles dependency installation when needed.
@@ -254,12 +254,12 @@ function installUv() {
 }
 
 /**
- * Add shell alias for claude-mem command
+ * Add shell alias for codex-mem command
  */
 function installCLI() {
   const WORKER_CLI = join(ROOT, 'plugin', 'scripts', 'worker-service.cjs');
   const bunPath = getBunPath() || 'bun';
-  const aliasLine = `alias claude-mem='${bunPath} "${WORKER_CLI}"'`;
+  const aliasLine = `alias codex-mem='${bunPath} "${WORKER_CLI}"'`;
   const markerPath = join(ROOT, '.cli-installed');
 
   // Skip if already installed
@@ -270,17 +270,17 @@ function installCLI() {
       // Windows: Add to PATH via PowerShell profile
       const profilePath = join(process.env.USERPROFILE || homedir(), 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1');
       const profileDir = join(process.env.USERPROFILE || homedir(), 'Documents', 'PowerShell');
-      const functionDef = `function claude-mem { & "${bunPath}" "${WORKER_CLI}" $args }\n`;
+      const functionDef = `function codex-mem { & "${bunPath}" "${WORKER_CLI}" $args }\n`;
 
       if (!existsSync(profileDir)) {
         execSync(`mkdir "${profileDir}"`, { stdio: 'ignore', shell: true });
       }
 
       const existingContent = existsSync(profilePath) ? readFileSync(profilePath, 'utf-8') : '';
-      if (!existingContent.includes('function claude-mem')) {
+      if (!existingContent.includes('function codex-mem')) {
         writeFileSync(profilePath, existingContent + '\n' + functionDef);
         console.error(`✅ PowerShell function added to profile`);
-        console.error('   Restart your terminal to use: claude-mem <command>');
+        console.error('   Restart your terminal to use: codex-mem <command>');
       }
     } else {
       // Unix: Add alias to shell configs
@@ -292,13 +292,13 @@ function installCLI() {
       for (const config of shellConfigs) {
         if (existsSync(config)) {
           const content = readFileSync(config, 'utf-8');
-          if (!content.includes('alias claude-mem=')) {
+          if (!content.includes('alias codex-mem=')) {
             writeFileSync(config, content + '\n' + aliasLine + '\n');
             console.error(`✅ Alias added to ${config}`);
           }
         }
       }
-      console.error('   Restart your terminal to use: claude-mem <command>');
+      console.error('   Restart your terminal to use: codex-mem <command>');
     }
 
     writeFileSync(markerPath, new Date().toISOString());
@@ -410,8 +410,8 @@ try {
     console.error('✅ Dependencies installed');
 
     // Auto-restart worker to pick up new code
-    const port = process.env.CLAUDE_MEM_WORKER_PORT || 37777;
-    console.error(`[claude-mem] Plugin updated to v${newVersion} - restarting worker...`);
+    const port = process.env.CODEX_MEM_WORKER_PORT || process.env.CLAUDE_MEM_WORKER_PORT || 37777;
+    console.error(`[codex-mem] Plugin updated to v${newVersion} - restarting worker...`);
     try {
       // Graceful shutdown via HTTP (curl is cross-platform enough)
       execSync(`curl -s -X POST http://127.0.0.1:${port}/api/admin/shutdown`, {

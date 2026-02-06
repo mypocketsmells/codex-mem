@@ -3,18 +3,22 @@
  *
  * Shared utilities for writing folder-level CLAUDE.md files with
  * auto-generated context sections. Preserves user content outside
- * <claude-mem-context> tags.
+ * codex-mem/claude-mem context tags.
  */
 
 import { existsSync, readFileSync, writeFileSync, renameSync } from 'fs';
 import path from 'path';
-import os from 'os';
 import { logger } from './logger.js';
 import { formatDate, groupByDate } from '../shared/timeline-formatting.js';
 import { SettingsDefaultsManager } from '../shared/SettingsDefaultsManager.js';
 import { getWorkerHost } from '../shared/worker-utils.js';
+import { USER_SETTINGS_PATH } from '../shared/paths.js';
 
-const SETTINGS_PATH = path.join(os.homedir(), '.claude-mem', 'settings.json');
+const SETTINGS_PATH = USER_SETTINGS_PATH;
+const CANONICAL_CONTEXT_START_TAG = '<codex-mem-context>';
+const CANONICAL_CONTEXT_END_TAG = '</codex-mem-context>';
+const LEGACY_CONTEXT_START_TAG = '<claude-mem-context>';
+const LEGACY_CONTEXT_END_TAG = '</claude-mem-context>';
 
 /**
  * Validate that a file path is safe for CLAUDE.md generation.
@@ -62,26 +66,31 @@ function isValidPathForClaudeMd(filePath: string, projectRoot?: string): boolean
  * 3. No tags in existing content → appends tagged content at end
  */
 export function replaceTaggedContent(existingContent: string, newContent: string): string {
-  const startTag = '<claude-mem-context>';
-  const endTag = '</claude-mem-context>';
-
   // If no existing content, wrap new content in tags
   if (!existingContent) {
-    return `${startTag}\n${newContent}\n${endTag}`;
+    return `${CANONICAL_CONTEXT_START_TAG}\n${newContent}\n${CANONICAL_CONTEXT_END_TAG}`;
   }
 
-  // If existing has tags, replace only tagged section
-  const startIdx = existingContent.indexOf(startTag);
-  const endIdx = existingContent.indexOf(endTag);
+  // If existing has canonical tags, replace only canonical tagged section.
+  const canonicalStartIdx = existingContent.indexOf(CANONICAL_CONTEXT_START_TAG);
+  const canonicalEndIdx = existingContent.indexOf(CANONICAL_CONTEXT_END_TAG);
+  if (canonicalStartIdx !== -1 && canonicalEndIdx !== -1) {
+    return existingContent.substring(0, canonicalStartIdx) +
+      `${CANONICAL_CONTEXT_START_TAG}\n${newContent}\n${CANONICAL_CONTEXT_END_TAG}` +
+      existingContent.substring(canonicalEndIdx + CANONICAL_CONTEXT_END_TAG.length);
+  }
 
-  if (startIdx !== -1 && endIdx !== -1) {
-    return existingContent.substring(0, startIdx) +
-      `${startTag}\n${newContent}\n${endTag}` +
-      existingContent.substring(endIdx + endTag.length);
+  // If existing has legacy tags, replace that section with canonical tags.
+  const legacyStartIdx = existingContent.indexOf(LEGACY_CONTEXT_START_TAG);
+  const legacyEndIdx = existingContent.indexOf(LEGACY_CONTEXT_END_TAG);
+  if (legacyStartIdx !== -1 && legacyEndIdx !== -1) {
+    return existingContent.substring(0, legacyStartIdx) +
+      `${CANONICAL_CONTEXT_START_TAG}\n${newContent}\n${CANONICAL_CONTEXT_END_TAG}` +
+      existingContent.substring(legacyEndIdx + LEGACY_CONTEXT_END_TAG.length);
   }
 
   // If no tags exist, append tagged content at end
-  return existingContent + `\n\n${startTag}\n${newContent}\n${endTag}`;
+  return existingContent + `\n\n${CANONICAL_CONTEXT_START_TAG}\n${newContent}\n${CANONICAL_CONTEXT_END_TAG}`;
 }
 
 /**

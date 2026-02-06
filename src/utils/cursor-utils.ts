@@ -5,9 +5,15 @@
  * Designed for testability - all file paths are passed as parameters.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
-import { join, basename } from 'path';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, unlinkSync } from 'fs';
+import { join, basename, dirname } from 'path';
 import { logger } from './logger.js';
+import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from '../shared/product-config.js';
+
+const CANONICAL_CONTEXT_RULE_FILE = `${CANONICAL_PRODUCT_NAME}-context.mdc`;
+const LEGACY_CONTEXT_RULE_FILE = `${LEGACY_PRODUCT_NAME}-context.mdc`;
+const CANONICAL_MCP_SERVER_NAME = CANONICAL_PRODUCT_NAME;
+const LEGACY_MCP_SERVER_NAME = LEGACY_PRODUCT_NAME;
 
 // ============================================================================
 // Types
@@ -54,7 +60,7 @@ export function readCursorRegistry(registryFile: string): CursorProjectRegistry 
  * Write the Cursor project registry to a file
  */
 export function writeCursorRegistry(registryFile: string, registry: CursorProjectRegistry): void {
-  const dir = join(registryFile, '..');
+  const dir = dirname(registryFile);
   mkdirSync(dir, { recursive: true });
   writeFileSync(registryFile, JSON.stringify(registry, null, 2));
 }
@@ -96,38 +102,55 @@ export function unregisterCursorProject(registryFile: string, projectName: strin
  */
 export function writeContextFile(workspacePath: string, context: string): void {
   const rulesDir = join(workspacePath, '.cursor', 'rules');
-  const rulesFile = join(rulesDir, 'claude-mem-context.mdc');
-  const tempFile = `${rulesFile}.tmp`;
+  const canonicalRulesFile = join(rulesDir, CANONICAL_CONTEXT_RULE_FILE);
+  const legacyRulesFile = join(rulesDir, LEGACY_CONTEXT_RULE_FILE);
+  const tempFile = `${canonicalRulesFile}.tmp`;
 
   mkdirSync(rulesDir, { recursive: true });
 
+  // Migrate old context file naming to canonical.
+  if (existsSync(legacyRulesFile) && !existsSync(canonicalRulesFile)) {
+    renameSync(legacyRulesFile, canonicalRulesFile);
+  } else if (existsSync(legacyRulesFile) && existsSync(canonicalRulesFile)) {
+    // Avoid duplicated Cursor rules if both legacy and canonical files exist.
+    unlinkSync(legacyRulesFile);
+  }
+
   const content = `---
 alwaysApply: true
-description: "Claude-mem context from past sessions (auto-updated)"
+description: "Codex-mem context from past sessions (auto-updated)"
 ---
 
 # Memory Context from Past Sessions
 
-The following context is from claude-mem, a persistent memory system that tracks your coding sessions.
+The following context is from codex-mem, a persistent memory system that tracks your coding sessions.
 
 ${context}
 
 ---
-*Updated after last session. Use claude-mem's MCP search tools for more detailed queries.*
+*Updated after last session. Use codex-mem's MCP search tools for more detailed queries.*
 `;
 
   // Atomic write: temp file + rename
   writeFileSync(tempFile, content);
-  renameSync(tempFile, rulesFile);
+  renameSync(tempFile, canonicalRulesFile);
 }
 
 /**
  * Read context file from a Cursor project's .cursor/rules directory
  */
 export function readContextFile(workspacePath: string): string | null {
-  const rulesFile = join(workspacePath, '.cursor', 'rules', 'claude-mem-context.mdc');
-  if (!existsSync(rulesFile)) return null;
-  return readFileSync(rulesFile, 'utf-8');
+  const rulesDir = join(workspacePath, '.cursor', 'rules');
+  const canonicalRulesFile = join(rulesDir, CANONICAL_CONTEXT_RULE_FILE);
+  const legacyRulesFile = join(rulesDir, LEGACY_CONTEXT_RULE_FILE);
+
+  if (existsSync(canonicalRulesFile)) {
+    return readFileSync(canonicalRulesFile, 'utf-8');
+  }
+  if (existsSync(legacyRulesFile)) {
+    return readFileSync(legacyRulesFile, 'utf-8');
+  }
+  return null;
 }
 
 // ============================================================================
@@ -135,11 +158,11 @@ export function readContextFile(workspacePath: string): string | null {
 // ============================================================================
 
 /**
- * Configure claude-mem MCP server in Cursor's mcp.json
+ * Configure codex-mem MCP server in Cursor's mcp.json
  * Preserves existing MCP servers
  */
 export function configureCursorMcp(mcpJsonPath: string, mcpServerScriptPath: string): void {
-  const dir = join(mcpJsonPath, '..');
+  const dir = dirname(mcpJsonPath);
   mkdirSync(dir, { recursive: true });
 
   // Load existing config or create new
@@ -159,17 +182,23 @@ export function configureCursorMcp(mcpJsonPath: string, mcpServerScriptPath: str
     }
   }
 
-  // Add claude-mem MCP server
-  config.mcpServers['claude-mem'] = {
+  // Migrate legacy key if present.
+  if (config.mcpServers[LEGACY_MCP_SERVER_NAME] && !config.mcpServers[CANONICAL_MCP_SERVER_NAME]) {
+    config.mcpServers[CANONICAL_MCP_SERVER_NAME] = config.mcpServers[LEGACY_MCP_SERVER_NAME];
+  }
+
+  // Add canonical codex-mem MCP server
+  config.mcpServers[CANONICAL_MCP_SERVER_NAME] = {
     command: 'node',
     args: [mcpServerScriptPath]
   };
+  delete config.mcpServers[LEGACY_MCP_SERVER_NAME];
 
   writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2));
 }
 
 /**
- * Remove claude-mem MCP server from Cursor's mcp.json
+ * Remove codex-mem MCP server (and legacy alias) from Cursor's mcp.json
  * Preserves other MCP servers
  */
 export function removeMcpConfig(mcpJsonPath: string): void {
@@ -177,8 +206,9 @@ export function removeMcpConfig(mcpJsonPath: string): void {
 
   try {
     const config: CursorMcpConfig = JSON.parse(readFileSync(mcpJsonPath, 'utf-8'));
-    if (config.mcpServers && config.mcpServers['claude-mem']) {
-      delete config.mcpServers['claude-mem'];
+    if (config.mcpServers) {
+      delete config.mcpServers[CANONICAL_MCP_SERVER_NAME];
+      delete config.mcpServers[LEGACY_MCP_SERVER_NAME];
       writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2));
     }
   } catch (e) {

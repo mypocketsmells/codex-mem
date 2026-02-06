@@ -141,7 +141,7 @@ Claude-Mem uses lifecycle hook scripts across 5 lifecycle events. SessionStart r
 
 **Output format:**
 ```markdown
-# [claude-mem] recent context
+# [codex-mem] recent context
 
 **Legend:** 🎯 session-request | 🔴 gotcha | 🟡 problem-solution ...
 
@@ -648,7 +648,7 @@ claude --debug
     **Symptoms:** PostToolUse hook runs but observations missing
 
     **Debugging:**
-    1. Check database: `sqlite3 ~/.claude-mem/claude-mem.db "SELECT * FROM observation_queue"`
+    1. Check database: `sqlite3 ~/.codex-mem/codex-mem.db "SELECT * FROM observation_queue"`
     2. Verify session exists: `SELECT * FROM sdk_sessions`
     3. Check worker status: `npm run worker:status`
     4. View worker logs: `npm run worker:logs`
@@ -774,7 +774,7 @@ LIMIT 20
 - Session summaries
 
 **Privacy guarantees:**
-- All data stored locally in `~/.claude-mem/claude-mem.db`
+- All data stored locally in `~/.codex-mem/codex-mem.db`
 - No cloud uploads (API calls only for AI compression)
 - SQLite file permissions: user-only read/write
 - No analytics or telemetry

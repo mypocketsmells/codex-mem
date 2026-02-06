@@ -14,9 +14,7 @@ import { ParsedObservation, ParsedSummary } from '../../sdk/parser.js';
 import { SessionStore } from '../sqlite/SessionStore.js';
 import { logger } from '../../utils/logger.js';
 import { SettingsDefaultsManager } from '../../shared/SettingsDefaultsManager.js';
-import { USER_SETTINGS_PATH } from '../../shared/paths.js';
-import path from 'path';
-import os from 'os';
+import { USER_SETTINGS_PATH, VECTOR_DB_DIR } from '../../shared/paths.js';
 
 // Version injected at build time by esbuild define
 declare const __DEFAULT_PACKAGE_VERSION__: string;
@@ -91,7 +89,7 @@ export class ChromaSync {
   constructor(project: string) {
     this.project = project;
     this.collectionName = `cm__${project}`;
-    this.VECTOR_DB_DIR = path.join(os.homedir(), '.claude-mem', 'vector-db');
+    this.VECTOR_DB_DIR = VECTOR_DB_DIR;
 
     // Disable on Windows to prevent console popups from MCP subprocess spawning
     // The MCP SDK's StdioClientTransport spawns Python processes that create visible windows
@@ -151,7 +149,7 @@ export class ChromaSync {
 
       // Empty capabilities object: this client only calls Chroma tools, doesn't expose any
       this.client = new Client({
-        name: 'claude-mem-chroma-sync',
+        name: 'codex-mem-chroma-sync',
         version: packageVersion
       }, {
         capabilities: {}

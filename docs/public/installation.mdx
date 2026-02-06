@@ -1,17 +1,17 @@
 ---
 title: "Installation"
-description: "Install Claude-Mem plugin for persistent memory across sessions"
+description: "Install Codex-Mem for persistent memory across sessions"
 ---
 
 # Installation Guide
 
 ## Quick Start
 
-Install Claude-Mem directly from the plugin marketplace:
+Install Codex-Mem directly from the plugin marketplace:
 
 ```bash
-/plugin marketplace add thedotmack/claude-mem
-/plugin install claude-mem
+/plugin marketplace add thedotmack/codex-mem
+/plugin install codex-mem
 ```
 
 That's it! The plugin will automatically:
@@ -37,8 +37,8 @@ For development or testing, you can clone and build from source:
 
 ```bash
 # Clone the repository
-git clone https://github.com/thedotmack/claude-mem.git
-cd claude-mem
+git clone https://github.com/thedotmack/codex-mem.git
+cd codex-mem
 
 # Install dependencies
 npm install
@@ -69,12 +69,12 @@ cat plugin/hooks/hooks.json
 
 #### 3. Data Directory Location
 
-Data is stored in `~/.claude-mem/`:
-- Database: `~/.claude-mem/claude-mem.db`
-- PID file: `~/.claude-mem/.worker.pid`
-- Port file: `~/.claude-mem/.worker.port`
-- Logs: `~/.claude-mem/logs/worker-YYYY-MM-DD.log`
-- Settings: `~/.claude-mem/settings.json`
+Data is stored in `~/.codex-mem/`:
+- Database: `~/.codex-mem/codex-mem.db`
+- PID file: `~/.codex-mem/.worker.pid`
+- Port file: `~/.codex-mem/.worker.port`
+- Logs: `~/.codex-mem/logs/worker-YYYY-MM-DD.log`
+- Settings: `~/.codex-mem/settings.json`
 
 Override with environment variable:
 ```bash
@@ -103,10 +103,10 @@ Upgrades are automatic when updating via the plugin marketplace. Key changes in 
 
 **v5.4.0+**: Skill-based search replaces MCP tools, saving ~2,250 tokens per session.
 
-See [CHANGELOG](https://github.com/thedotmack/claude-mem/blob/main/CHANGELOG.md) for complete version history.
+See [CHANGELOG](https://github.com/thedotmack/codex-mem/blob/main/CHANGELOG.md) for complete version history.
 
 ## Next Steps
 
-- [Getting Started Guide](usage/getting-started) - Learn how Claude-Mem works automatically
+- [Getting Started Guide](usage/getting-started) - Learn how Codex-Mem works automatically
 - [MCP Search Tools](usage/search-tools) - Query your project history
-- [Configuration](configuration) - Customize Claude-Mem behavior
+- [Configuration](configuration) - Customize Codex-Mem behavior

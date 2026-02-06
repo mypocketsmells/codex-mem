@@ -8,7 +8,7 @@ import { writeContextFile, readContextFile } from '../src/utils/cursor-utils';
  * Tests for Cursor Context Update functionality
  *
  * These tests validate that context files are correctly written to
- * .cursor/rules/claude-mem-context.mdc for registered projects.
+ * .cursor/rules/codex-mem-context.mdc for registered projects.
  *
  * The context file uses Cursor's MDC format with frontmatter.
  */
@@ -41,10 +41,10 @@ describe('Cursor Context Update', () => {
       expect(existsSync(rulesDir)).toBe(true);
     });
 
-    it('creates claude-mem-context.mdc file', () => {
+    it('creates codex-mem-context.mdc file', () => {
       writeContextFile(workspacePath, 'test context');
 
-      const rulesFile = join(workspacePath, '.cursor', 'rules', 'claude-mem-context.mdc');
+      const rulesFile = join(workspacePath, '.cursor', 'rules', 'codex-mem-context.mdc');
       expect(existsSync(rulesFile)).toBe(true);
     });
 
@@ -59,7 +59,7 @@ describe('Cursor Context Update', () => {
       writeContextFile(workspacePath, 'test context');
 
       const content = readContextFile(workspacePath);
-      expect(content).toContain('description: "Claude-mem context from past sessions (auto-updated)"');
+      expect(content).toContain('description: "Codex-mem context from past sessions (auto-updated)"');
     });
 
     it('includes the provided context in the file body', () => {
@@ -86,13 +86,13 @@ describe('Cursor Context Update', () => {
       writeContextFile(workspacePath, 'test');
 
       const content = readContextFile(workspacePath);
-      expect(content).toContain("Use claude-mem's MCP search tools for more detailed queries");
+      expect(content).toContain("Use codex-mem's MCP search tools for more detailed queries");
     });
 
     it('uses atomic write (no temp file left behind)', () => {
       writeContextFile(workspacePath, 'test context');
 
-      const tempFile = join(workspacePath, '.cursor', 'rules', 'claude-mem-context.mdc.tmp');
+      const tempFile = join(workspacePath, '.cursor', 'rules', 'codex-mem-context.mdc.tmp');
       expect(existsSync(tempFile)).toBe(false);
     });
 
@@ -215,6 +215,29 @@ Paragraph 2`;
       // Should not destroy existing content
       expect(existsSync(join(workspacePath, '.cursor', 'other', 'file.txt'))).toBe(true);
       expect(readContextFile(workspacePath)).toContain('new context');
+    });
+
+    it('reads legacy context file if canonical file is missing', () => {
+      const legacyFile = join(workspacePath, '.cursor', 'rules', 'claude-mem-context.mdc');
+      mkdirSync(join(workspacePath, '.cursor', 'rules'), { recursive: true });
+      writeFileSync(legacyFile, 'legacy-content');
+
+      const content = readContextFile(workspacePath);
+      expect(content).toBe('legacy-content');
+    });
+
+    it('migrates legacy context filename to canonical on write', () => {
+      const rulesDir = join(workspacePath, '.cursor', 'rules');
+      const legacyFile = join(rulesDir, 'claude-mem-context.mdc');
+      const canonicalFile = join(rulesDir, 'codex-mem-context.mdc');
+      mkdirSync(rulesDir, { recursive: true });
+      writeFileSync(legacyFile, 'legacy-content');
+
+      writeContextFile(workspacePath, 'fresh-context');
+
+      expect(existsSync(canonicalFile)).toBe(true);
+      expect(existsSync(legacyFile)).toBe(false);
+      expect(readContextFile(workspacePath)).toContain('fresh-context');
     });
   });
 });

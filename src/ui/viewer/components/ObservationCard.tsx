@@ -20,9 +20,12 @@ function stripProjectRoot(filePath: string): string {
   }
 
   // Fallback: if path contains project name, strip everything before it
-  const projectIndex = filePath.indexOf('claude-mem/');
-  if (projectIndex !== -1) {
-    return filePath.substring(projectIndex + 'claude-mem/'.length);
+  const projectMarkers = ['codex-mem/', 'claude-mem/'];
+  for (const marker of projectMarkers) {
+    const projectIndex = filePath.indexOf(marker);
+    if (projectIndex !== -1) {
+      return filePath.substring(projectIndex + marker.length);
+    }
   }
 
   // If no markers found, return basename or original path

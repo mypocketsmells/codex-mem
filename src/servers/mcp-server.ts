@@ -1,5 +1,5 @@
 /**
- * Claude-mem MCP Search Server - Thin HTTP Wrapper
+ * Codex-mem MCP Search Server - Thin HTTP Wrapper
  *
  * Refactored from 2,718 lines to ~600-800 lines
  * Delegates all business logic to Worker HTTP API at localhost:37777
@@ -27,6 +27,9 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { existsSync } from 'fs';
+import path from 'path';
+import { spawnSync } from 'child_process';
 import { getWorkerPort, getWorkerHost } from '../shared/worker-utils.js';
 
 /**
@@ -35,6 +38,136 @@ import { getWorkerPort, getWorkerHost } from '../shared/worker-utils.js';
 const WORKER_PORT = getWorkerPort();
 const WORKER_HOST = getWorkerHost();
 const WORKER_BASE_URL = `http://${WORKER_HOST}:${WORKER_PORT}`;
+const WORKER_HEALTH_URL = `${WORKER_BASE_URL}/api/health`;
+
+const WORKER_HEALTH_CHECK_TIMEOUT_MS = 1500;
+const WORKER_STARTUP_WAIT_TIMEOUT_MS = 35000;
+const WORKER_STARTUP_POLL_INTERVAL_MS = 500;
+
+let workerStartupPromise: Promise<boolean> | null = null;
+
+interface WorkerStartResult {
+  success: boolean;
+  message: string;
+}
+
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+function getCurrentDirectory(): string {
+  if (typeof __dirname === 'string' && __dirname.length > 0) {
+    return __dirname;
+  }
+
+  return process.cwd();
+}
+
+function resolveWorkerServiceScriptPath(): string | null {
+  const scriptDirectory = getCurrentDirectory();
+  const candidatePaths = [
+    process.env.CLAUDE_PLUGIN_ROOT
+      ? path.join(process.env.CLAUDE_PLUGIN_ROOT, 'scripts', 'worker-service.cjs')
+      : null,
+    process.env.CODEX_MEM_INSTALL_ROOT
+      ? path.join(process.env.CODEX_MEM_INSTALL_ROOT, 'plugin', 'scripts', 'worker-service.cjs')
+      : null,
+    process.env.CLAUDE_MEM_INSTALL_ROOT
+      ? path.join(process.env.CLAUDE_MEM_INSTALL_ROOT, 'plugin', 'scripts', 'worker-service.cjs')
+      : null,
+    path.join(scriptDirectory, 'worker-service.cjs'),
+    path.join(scriptDirectory, '../services/worker-service.js'),
+    path.join(process.cwd(), 'plugin', 'scripts', 'worker-service.cjs'),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  for (const candidatePath of candidatePaths) {
+    if (existsSync(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  return null;
+}
+
+function parseWorkerStartOutput(stdout: string): WorkerStartResult {
+  const lines = stdout
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const line = lines[index];
+    if (!line.startsWith('{') || !line.endsWith('}')) {
+      continue;
+    }
+
+    try {
+      const parsed = JSON.parse(line) as { status?: string; message?: string };
+      if (parsed.status === 'ready') {
+        return { success: true, message: 'Worker reported ready' };
+      }
+      if (parsed.status === 'error') {
+        return {
+          success: false,
+          message: parsed.message || 'Worker reported startup error'
+        };
+      }
+    } catch {
+      // Ignore parse failures and continue scanning previous lines.
+    }
+  }
+
+  return {
+    success: false,
+    message: 'Worker start command did not return JSON status'
+  };
+}
+
+function startWorkerViaCli(): WorkerStartResult {
+  const workerServiceScriptPath = resolveWorkerServiceScriptPath();
+  if (!workerServiceScriptPath) {
+    return {
+      success: false,
+      message: 'Could not locate worker-service.cjs'
+    };
+  }
+
+  const bunExecutable = process.env.BUN_PATH || 'bun';
+  const startCommand = spawnSync(
+    bunExecutable,
+    [workerServiceScriptPath, 'start'],
+    {
+      env: {
+        ...process.env,
+        CLAUDE_MEM_WORKER_HOST: WORKER_HOST,
+        CLAUDE_MEM_WORKER_PORT: String(WORKER_PORT),
+        CODEX_MEM_WORKER_HOST: WORKER_HOST,
+        CODEX_MEM_WORKER_PORT: String(WORKER_PORT),
+      },
+      encoding: 'utf-8',
+      timeout: WORKER_STARTUP_WAIT_TIMEOUT_MS,
+      stdio: ['ignore', 'pipe', 'pipe']
+    }
+  );
+
+  if (startCommand.error) {
+    return {
+      success: false,
+      message: `Failed to run worker start command: ${startCommand.error.message}`
+    };
+  }
+
+  const parsedStatus = parseWorkerStartOutput(startCommand.stdout || '');
+  if (!parsedStatus.success) {
+    const stderr = (startCommand.stderr || '').trim();
+    return {
+      success: false,
+      message: stderr ? `${parsedStatus.message} (${stderr})` : parsedStatus.message
+    };
+  }
+
+  return parsedStatus;
+}
 
 /**
  * Map tool names to Worker HTTP endpoints
@@ -54,6 +187,17 @@ async function callWorkerAPI(
   logger.debug('SYSTEM', '→ Worker API', undefined, { endpoint, params });
 
   try {
+    const workerReady = await ensureWorkerAvailable(`GET ${endpoint}`);
+    if (!workerReady) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Worker API unavailable at ${WORKER_BASE_URL}. Start it manually with: npm run worker:restart`
+        }],
+        isError: true
+      };
+    }
+
     const searchParams = new URLSearchParams();
 
     // Convert params to query string
@@ -64,7 +208,15 @@ async function callWorkerAPI(
     }
 
     const url = `${WORKER_BASE_URL}${endpoint}?${searchParams}`;
-    const response = await fetch(url);
+    let response: Response;
+    try {
+      response = await fetch(url);
+    } catch (firstRequestError) {
+      logger.warn('SYSTEM', 'Worker API request failed; retrying after health check', { endpoint });
+      const recovered = await ensureWorkerAvailable(`retry GET ${endpoint}`);
+      if (!recovered) throw firstRequestError;
+      response = await fetch(url);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -99,14 +251,34 @@ async function callWorkerAPIPost(
   logger.debug('HTTP', 'Worker API request (POST)', undefined, { endpoint });
 
   try {
+    const workerReady = await ensureWorkerAvailable(`POST ${endpoint}`);
+    if (!workerReady) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Worker API unavailable at ${WORKER_BASE_URL}. Start it manually with: npm run worker:restart`
+        }],
+        isError: true
+      };
+    }
+
     const url = `${WORKER_BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
+    const requestInit: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
-    });
+    };
+    let response: Response;
+    try {
+      response = await fetch(url, requestInit);
+    } catch (firstRequestError) {
+      logger.warn('HTTP', 'Worker API POST failed; retrying after health check', { endpoint });
+      const recovered = await ensureWorkerAvailable(`retry POST ${endpoint}`);
+      if (!recovered) throw firstRequestError;
+      response = await fetch(url, requestInit);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -141,13 +313,76 @@ async function callWorkerAPIPost(
  */
 async function verifyWorkerConnection(): Promise<boolean> {
   try {
-    const response = await fetch(`${WORKER_BASE_URL}/api/health`);
+    const response = await fetch(WORKER_HEALTH_URL, {
+      signal: AbortSignal.timeout(WORKER_HEALTH_CHECK_TIMEOUT_MS)
+    });
     return response.ok;
   } catch (error) {
     // Expected during worker startup or if worker is down
     logger.debug('SYSTEM', 'Worker health check failed', {}, error as Error);
     return false;
   }
+}
+
+async function waitForWorkerConnection(timeoutMilliseconds: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMilliseconds;
+
+  while (Date.now() < deadline) {
+    if (await verifyWorkerConnection()) {
+      return true;
+    }
+    await sleep(WORKER_STARTUP_POLL_INTERVAL_MS);
+  }
+
+  return false;
+}
+
+async function ensureWorkerAvailable(reason: string): Promise<boolean> {
+  if (await verifyWorkerConnection()) {
+    return true;
+  }
+
+  if (!workerStartupPromise) {
+    workerStartupPromise = (async (): Promise<boolean> => {
+      logger.warn('SYSTEM', 'Worker unavailable; attempting auto-start', {
+        reason,
+        workerUrl: WORKER_BASE_URL
+      });
+
+      const startResult = startWorkerViaCli();
+      if (!startResult.success) {
+        logger.error('SYSTEM', 'Worker auto-start failed', undefined, {
+          reason,
+          workerUrl: WORKER_BASE_URL,
+          message: startResult.message
+        });
+        return false;
+      }
+
+      const becameHealthy = await waitForWorkerConnection(WORKER_STARTUP_WAIT_TIMEOUT_MS);
+      if (!becameHealthy) {
+        logger.error('SYSTEM', 'Worker failed health check after auto-start', undefined, {
+          reason,
+          workerUrl: WORKER_BASE_URL,
+          timeoutMs: WORKER_STARTUP_WAIT_TIMEOUT_MS
+        });
+        return false;
+      }
+
+      logger.info('SYSTEM', 'Worker auto-started successfully', {
+        reason,
+        workerUrl: WORKER_BASE_URL
+      });
+
+      return true;
+    })().finally(() => {
+      workerStartupPromise = null;
+    });
+  } else {
+    logger.info('SYSTEM', 'Worker startup already in progress', { reason });
+  }
+
+  return workerStartupPromise;
 }
 
 /**
@@ -297,14 +532,14 @@ async function main() {
   // Start the MCP server
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  logger.info('SYSTEM', 'Claude-mem search server started');
+  logger.info('SYSTEM', 'Codex-mem search server started');
 
   // Check Worker availability in background
   setTimeout(async () => {
-    const workerAvailable = await verifyWorkerConnection();
+    const workerAvailable = await ensureWorkerAvailable('mcp startup');
     if (!workerAvailable) {
-      logger.error('SYSTEM', 'Worker not available', undefined, { workerUrl: WORKER_BASE_URL });
-      logger.error('SYSTEM', 'Tools will fail until Worker is started');
+      logger.error('SYSTEM', 'Worker not available after auto-start attempt', undefined, { workerUrl: WORKER_BASE_URL });
+      logger.error('SYSTEM', 'Tools may fail until Worker is started');
       logger.error('SYSTEM', 'Start Worker with: npm run worker:restart');
     } else {
       logger.info('SYSTEM', 'Worker available', undefined, { workerUrl: WORKER_BASE_URL });

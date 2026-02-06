@@ -2,7 +2,7 @@
 
 ## What This Folder Is
 
-This `docs/public/` folder contains the **Mintlify documentation site** - the official user-facing documentation for claude-mem. It's a structured documentation platform with a specific file format and organization.
+This `docs/public/` folder contains the **Mintlify documentation site** - the official user-facing documentation for codex-mem. It's a structured documentation platform with a specific file format and organization.
 
 ## Folder Structure
 
@@ -62,7 +62,7 @@ Files that belong in `/docs/context/` (NOT here):
 
 ## Development Workflow
 
-**For contributors working on claude-mem:**
+**For contributors working on codex-mem:**
 - Read `/CLAUDE.md` in the project root for development instructions
 - Place planning/design docs in `/docs/context/`
 - Only add user-facing documentation to `/docs/public/`

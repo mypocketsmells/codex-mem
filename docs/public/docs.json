@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Claude-Mem",
-  "description": "Persistent memory compression system that preserves context across Claude Code sessions",
+  "name": "Codex-Mem",
+  "description": "Persistent memory compression system that preserves context across Codex and Claude-style sessions",
   "theme": "mint",
-  "favicon": "/claude-mem-logomark.webp",
+  "favicon": "/codex-mem-logomark.webp",
   "logo": {
     "light": "/claude-mem-logo-for-light-mode.webp",
     "dark": "/claude-mem-logo-for-dark-mode.webp",
-    "href": "https://github.com/thedotmack/claude-mem"
+    "href": "https://github.com/thedotmack/codex-mem"
   },
   "colors": {
     "primary": "#3B82F6",
@@ -18,13 +18,13 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/thedotmack/claude-mem"
+        "href": "https://github.com/thedotmack/codex-mem"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Install",
-      "href": "https://github.com/thedotmack/claude-mem#quick-start"
+      "href": "https://github.com/thedotmack/codex-mem#quick-start"
     }
   },
   "navigation": {
@@ -94,7 +94,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/thedotmack/claude-mem"
+      "github": "https://github.com/thedotmack/codex-mem"
     },
     "links": [
       {
@@ -102,11 +102,11 @@
         "items": [
           {
             "label": "Documentation",
-            "href": "https://github.com/thedotmack/claude-mem"
+            "href": "https://github.com/thedotmack/codex-mem"
           },
           {
             "label": "Issues",
-            "href": "https://github.com/thedotmack/claude-mem/issues"
+            "href": "https://github.com/thedotmack/codex-mem/issues"
           }
         ]
       },
@@ -115,7 +115,7 @@
         "items": [
           {
             "label": "License (AGPL-3.0)",
-            "href": "https://github.com/thedotmack/claude-mem/blob/main/LICENSE"
+            "href": "https://github.com/thedotmack/codex-mem/blob/main/LICENSE"
           }
         ]
       }
@@ -125,8 +125,8 @@
     "indexing": "all",
     "metatags": {
       "og:type": "website",
-      "og:site_name": "Claude-Mem Documentation",
-      "og:description": "Persistent memory compression system that preserves context across Claude Code sessions"
+      "og:site_name": "Codex-Mem Documentation",
+      "og:description": "Persistent memory compression system that preserves context across Codex and Claude-style sessions"
     }
   },
   "contextual": {

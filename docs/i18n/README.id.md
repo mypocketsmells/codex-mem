@@ -3,11 +3,11 @@
 ---
 <h1 align="center">
   <br>
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/thedotmack/codex-mem">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Codex-Mem" width="400">
     </picture>
   </a>
   <br>
@@ -64,9 +64,9 @@
 <p align="center">
   <a href="https://trendshift.io/repositories/15496" target="_blank">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/claude-mem | Trendshift" width="250" height="55"/>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge.svg">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/codex-mem | Trendshift" width="250" height="55"/>
     </picture>
   </a>
 </p>
@@ -74,9 +74,9 @@
 <br>
 
 <p align="center">
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/thedotmack/codex-mem">
     <picture>
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/cm-preview.gif" alt="Codex-Mem Preview" width="800">
     </picture>
   </a>
 </p>
@@ -92,7 +92,7 @@
 </p>
 
 <p align="center">
-  Claude-Mem secara mulus mempertahankan konteks di seluruh sesi dengan secara otomatis menangkap observasi penggunaan alat, menghasilkan ringkasan semantik, dan membuatnya tersedia untuk sesi mendatang. Ini memungkinkan Claude untuk mempertahankan kontinuitas pengetahuan tentang proyek bahkan setelah sesi berakhir atau tersambung kembali.
+  Codex-Mem secara mulus mempertahankan konteks di seluruh sesi dengan secara otomatis menangkap observasi penggunaan alat, menghasilkan ringkasan semantik, dan membuatnya tersedia untuk sesi mendatang. Ini memungkinkan Claude untuk mempertahankan kontinuitas pengetahuan tentang proyek bahkan setelah sesi berakhir atau tersambung kembali.
 </p>
 
 ---
@@ -102,9 +102,9 @@
 Mulai sesi Claude Code baru di terminal dan masukkan perintah berikut:
 
 ```
-> /plugin marketplace add thedotmack/claude-mem
+> /plugin marketplace add thedotmack/codex-mem
 
-> /plugin install claude-mem
+> /plugin install codex-mem
 ```
 
 Restart Claude Code. Konteks dari sesi sebelumnya akan secara otomatis muncul di sesi baru.
@@ -130,31 +130,31 @@ Restart Claude Code. Konteks dari sesi sebelumnya akan secara otomatis muncul di
 
 ### Memulai
 
-- **[Panduan Instalasi](https://docs.claude-mem.ai/installation)** - Mulai cepat & instalasi lanjutan
-- **[Panduan Penggunaan](https://docs.claude-mem.ai/usage/getting-started)** - Bagaimana Claude-Mem bekerja secara otomatis
-- **[Alat Pencarian](https://docs.claude-mem.ai/usage/search-tools)** - Query riwayat proyek Anda dengan bahasa alami
-- **[Fitur Beta](https://docs.claude-mem.ai/beta-features)** - Coba fitur eksperimental seperti Endless Mode
+- **[Panduan Instalasi](https://docs.codex-mem.ai/installation)** - Mulai cepat & instalasi lanjutan
+- **[Panduan Penggunaan](https://docs.codex-mem.ai/usage/getting-started)** - Bagaimana Codex-Mem bekerja secara otomatis
+- **[Alat Pencarian](https://docs.codex-mem.ai/usage/search-tools)** - Query riwayat proyek Anda dengan bahasa alami
+- **[Fitur Beta](https://docs.codex-mem.ai/beta-features)** - Coba fitur eksperimental seperti Endless Mode
 
 ### Praktik Terbaik
 
-- **[Context Engineering](https://docs.claude-mem.ai/context-engineering)** - Prinsip optimisasi konteks agen AI
-- **[Progressive Disclosure](https://docs.claude-mem.ai/progressive-disclosure)** - Filosofi di balik strategi priming konteks Claude-Mem
+- **[Context Engineering](https://docs.codex-mem.ai/context-engineering)** - Prinsip optimisasi konteks agen AI
+- **[Progressive Disclosure](https://docs.codex-mem.ai/progressive-disclosure)** - Filosofi di balik strategi priming konteks Codex-Mem
 
 ### Arsitektur
 
-- **[Ringkasan](https://docs.claude-mem.ai/architecture/overview)** - Komponen sistem & aliran data
-- **[Evolusi Arsitektur](https://docs.claude-mem.ai/architecture-evolution)** - Perjalanan dari v3 ke v5
-- **[Arsitektur Hooks](https://docs.claude-mem.ai/hooks-architecture)** - Bagaimana Claude-Mem menggunakan lifecycle hooks
-- **[Referensi Hooks](https://docs.claude-mem.ai/architecture/hooks)** - 7 skrip hook dijelaskan
-- **[Worker Service](https://docs.claude-mem.ai/architecture/worker-service)** - HTTP API & manajemen Bun
-- **[Database](https://docs.claude-mem.ai/architecture/database)** - Skema SQLite & pencarian FTS5
-- **[Arsitektur Pencarian](https://docs.claude-mem.ai/architecture/search-architecture)** - Pencarian hybrid dengan database vektor Chroma
+- **[Ringkasan](https://docs.codex-mem.ai/architecture/overview)** - Komponen sistem & aliran data
+- **[Evolusi Arsitektur](https://docs.codex-mem.ai/architecture-evolution)** - Perjalanan dari v3 ke v5
+- **[Arsitektur Hooks](https://docs.codex-mem.ai/hooks-architecture)** - Bagaimana Codex-Mem menggunakan lifecycle hooks
+- **[Referensi Hooks](https://docs.codex-mem.ai/architecture/hooks)** - 7 skrip hook dijelaskan
+- **[Worker Service](https://docs.codex-mem.ai/architecture/worker-service)** - HTTP API & manajemen Bun
+- **[Database](https://docs.codex-mem.ai/architecture/database)** - Skema SQLite & pencarian FTS5
+- **[Arsitektur Pencarian](https://docs.codex-mem.ai/architecture/search-architecture)** - Pencarian hybrid dengan database vektor Chroma
 
 ### Konfigurasi & Pengembangan
 
-- **[Konfigurasi](https://docs.claude-mem.ai/configuration)** - Variabel environment & pengaturan
-- **[Pengembangan](https://docs.claude-mem.ai/development)** - Membangun, testing, kontribusi
-- **[Pemecahan Masalah](https://docs.claude-mem.ai/troubleshooting)** - Masalah umum & solusi
+- **[Konfigurasi](https://docs.codex-mem.ai/configuration)** - Variabel environment & pengaturan
+- **[Pengembangan](https://docs.codex-mem.ai/development)** - Membangun, testing, kontribusi
+- **[Pemecahan Masalah](https://docs.codex-mem.ai/troubleshooting)** - Masalah umum & solusi
 
 ---
 
@@ -169,13 +169,13 @@ Restart Claude Code. Konteks dari sesi sebelumnya akan secara otomatis muncul di
 5. **mem-search Skill** - Query bahasa alami dengan progressive disclosure
 6. **Chroma Vector Database** - Pencarian hybrid semantik + keyword untuk pengambilan konteks yang cerdas
 
-Lihat [Ringkasan Arsitektur](https://docs.claude-mem.ai/architecture/overview) untuk detail.
+Lihat [Ringkasan Arsitektur](https://docs.codex-mem.ai/architecture/overview) untuk detail.
 
 ---
 
 ## mem-search Skill
 
-Claude-Mem menyediakan pencarian cerdas melalui mem-search skill yang secara otomatis dipanggil saat Anda bertanya tentang pekerjaan masa lalu:
+Codex-Mem menyediakan pencarian cerdas melalui mem-search skill yang secara otomatis dipanggil saat Anda bertanya tentang pekerjaan masa lalu:
 
 **Cara Kerja:**
 - Tanya saja secara alami: *"Apa yang kita lakukan sesi terakhir?"* atau *"Apakah kita sudah memperbaiki bug ini sebelumnya?"*
@@ -204,15 +204,15 @@ Claude-Mem menyediakan pencarian cerdas melalui mem-search skill yang secara oto
 "What was happening when we added the viewer UI?"
 ```
 
-Lihat [Panduan Alat Pencarian](https://docs.claude-mem.ai/usage/search-tools) untuk contoh detail.
+Lihat [Panduan Alat Pencarian](https://docs.codex-mem.ai/usage/search-tools) untuk contoh detail.
 
 ---
 
 ## Fitur Beta
 
-Claude-Mem menawarkan **beta channel** dengan fitur eksperimental seperti **Endless Mode** (arsitektur memori biomimetik untuk sesi yang diperpanjang). Beralih antara versi stabil dan beta dari web viewer UI di http://localhost:37777 → Settings.
+Codex-Mem menawarkan **beta channel** dengan fitur eksperimental seperti **Endless Mode** (arsitektur memori biomimetik untuk sesi yang diperpanjang). Beralih antara versi stabil dan beta dari web viewer UI di http://localhost:37777 → Settings.
 
-Lihat **[Dokumentasi Fitur Beta](https://docs.claude-mem.ai/beta-features)** untuk detail tentang Endless Mode dan cara mencobanya.
+Lihat **[Dokumentasi Fitur Beta](https://docs.codex-mem.ai/beta-features)** untuk detail tentang Endless Mode dan cara mencobanya.
 
 ---
 
@@ -228,15 +228,15 @@ Lihat **[Dokumentasi Fitur Beta](https://docs.claude-mem.ai/beta-features)** unt
 
 ## Konfigurasi
 
-Pengaturan dikelola di `~/.claude-mem/settings.json` (otomatis dibuat dengan default saat pertama kali dijalankan). Konfigurasi model AI, port worker, direktori data, level log, dan pengaturan injeksi konteks.
+Pengaturan dikelola di `~/.codex-mem/settings.json` (otomatis dibuat dengan default saat pertama kali dijalankan). Konfigurasi model AI, port worker, direktori data, level log, dan pengaturan injeksi konteks.
 
-Lihat **[Panduan Konfigurasi](https://docs.claude-mem.ai/configuration)** untuk semua pengaturan dan contoh yang tersedia.
+Lihat **[Panduan Konfigurasi](https://docs.codex-mem.ai/configuration)** untuk semua pengaturan dan contoh yang tersedia.
 
 ---
 
 ## Pengembangan
 
-Lihat **[Panduan Pengembangan](https://docs.claude-mem.ai/development)** untuk instruksi build, testing, dan alur kerja kontribusi.
+Lihat **[Panduan Pengembangan](https://docs.codex-mem.ai/development)** untuk instruksi build, testing, dan alur kerja kontribusi.
 
 ---
 
@@ -244,7 +244,7 @@ Lihat **[Panduan Pengembangan](https://docs.claude-mem.ai/development)** untuk i
 
 Jika mengalami masalah, jelaskan masalah ke Claude dan troubleshoot skill akan secara otomatis mendiagnosis dan memberikan perbaikan.
 
-Lihat **[Panduan Pemecahan Masalah](https://docs.claude-mem.ai/troubleshooting)** untuk masalah umum dan solusi.
+Lihat **[Panduan Pemecahan Masalah](https://docs.codex-mem.ai/troubleshooting)** untuk masalah umum dan solusi.
 
 ---
 
@@ -267,7 +267,7 @@ Kontribusi sangat dipersilakan! Silakan:
 4. Perbarui dokumentasi
 5. Kirim Pull Request
 
-Lihat [Panduan Pengembangan](https://docs.claude-mem.ai/development) untuk alur kerja kontribusi.
+Lihat [Panduan Pengembangan](https://docs.codex-mem.ai/development) untuk alur kerja kontribusi.
 
 ---
 
@@ -293,8 +293,8 @@ Lihat file [LICENSE](LICENSE) untuk detail lengkap.
 ## Dukungan
 
 - **Dokumentasi**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/thedotmack/claude-mem/issues)
-- **Repositori**: [github.com/thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+- **Issues**: [GitHub Issues](https://github.com/thedotmack/codex-mem/issues)
+- **Repositori**: [github.com/thedotmack/codex-mem](https://github.com/thedotmack/codex-mem)
 - **Penulis**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
 
 ---

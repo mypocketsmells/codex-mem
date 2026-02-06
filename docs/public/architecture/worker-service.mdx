@@ -583,7 +583,7 @@ DELETE /sessions/:sessionDbId
 
 The worker is managed by the native `ProcessManager` class which handles:
 - Process spawning with Bun runtime
-- PID file tracking at `~/.claude-mem/worker.pid`
+- PID file tracking at `~/.codex-mem/worker.pid`
 - Health checks with automatic retry
 - Graceful shutdown with SIGTERM/SIGKILL fallback
 
@@ -666,8 +666,8 @@ If port 37777 is in use, the worker will fail to start. Set a custom port via en
 The worker service stores data in the user data directory:
 
 ```
-~/.claude-mem/
-├── claude-mem.db           # SQLite database (bun:sqlite)
+~/.codex-mem/
+├── codex-mem.db           # SQLite database (bun:sqlite)
 ├── worker.pid              # PID file for process tracking
 ├── settings.json           # User settings
 └── logs/

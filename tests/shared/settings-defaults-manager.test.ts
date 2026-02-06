@@ -20,12 +20,27 @@ import { SettingsDefaultsManager } from '../../src/shared/SettingsDefaultsManage
 describe('SettingsDefaultsManager', () => {
   let tempDir: string;
   let settingsPath: string;
+  const trackedEnvKeys = [
+    'CODEX_MEM_MODEL',
+    'CLAUDE_MEM_MODEL',
+    'CODEX_MEM_WORKER_PORT',
+    'CLAUDE_MEM_WORKER_PORT',
+    'CODEX_CODE_PATH',
+    'CLAUDE_CODE_PATH',
+  ] as const;
+  let originalEnv: Record<string, string | undefined>;
 
   beforeEach(() => {
     // Create unique temp directory for each test
     tempDir = join(tmpdir(), `settings-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(tempDir, { recursive: true });
     settingsPath = join(tempDir, 'settings.json');
+
+    originalEnv = {};
+    for (const key of trackedEnvKeys) {
+      originalEnv[key] = process.env[key];
+      delete process.env[key];
+    }
   });
 
   afterEach(() => {
@@ -34,6 +49,14 @@ describe('SettingsDefaultsManager', () => {
       rmSync(tempDir, { recursive: true, force: true });
     } catch {
       // Ignore cleanup errors
+    }
+
+    for (const key of trackedEnvKeys) {
+      if (originalEnv[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = originalEnv[key];
+      }
     }
   });
 
@@ -275,6 +298,35 @@ describe('SettingsDefaultsManager', () => {
         // If it succeeds, it should return the parsed value
         // Either way, should not throw
         expect(result).toBeDefined();
+      });
+    });
+
+    describe('environment compatibility overrides', () => {
+      it('should apply CODEX_MEM_* overrides when settings file does not exist', () => {
+        process.env.CODEX_MEM_MODEL = 'codex-override-model';
+        process.env.CODEX_MEM_WORKER_PORT = '48888';
+
+        const result = SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        expect(result.CLAUDE_MEM_MODEL).toBe('codex-override-model');
+        expect(result.CLAUDE_MEM_WORKER_PORT).toBe('48888');
+      });
+
+      it('should prefer CODEX_MEM_* over CLAUDE_MEM_* when both are set', () => {
+        process.env.CLAUDE_MEM_MODEL = 'legacy-model';
+        process.env.CODEX_MEM_MODEL = 'canonical-model';
+
+        const result = SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        expect(result.CLAUDE_MEM_MODEL).toBe('canonical-model');
+      });
+
+      it('should map CODEX_CODE_PATH to CLAUDE_CODE_PATH when legacy key is unset', () => {
+        process.env.CODEX_CODE_PATH = '/usr/local/bin/codex';
+
+        const result = SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        expect(result.CLAUDE_CODE_PATH).toBe('/usr/local/bin/codex');
       });
     });
   });

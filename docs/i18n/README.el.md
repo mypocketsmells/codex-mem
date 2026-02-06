@@ -3,11 +3,11 @@
 ---
 <h1 align="center">
   <br>
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/thedotmack/codex-mem">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Codex-Mem" width="400">
     </picture>
   </a>
   <br>
@@ -64,9 +64,9 @@
 <p align="center">
   <a href="https://trendshift.io/repositories/15496" target="_blank">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/claude-mem | Trendshift" width="250" height="55"/>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge.svg">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/codex-mem | Trendshift" width="250" height="55"/>
     </picture>
   </a>
 </p>
@@ -74,9 +74,9 @@
 <br>
 
 <p align="center">
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/thedotmack/codex-mem">
     <picture>
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
+      <img src="https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/cm-preview.gif" alt="Codex-Mem Preview" width="800">
     </picture>
   </a>
 </p>
@@ -92,7 +92,7 @@
 </p>
 
 <p align="center">
-  Το Claude-Mem διατηρεί απρόσκοπτα το πλαίσιο μεταξύ συνεδριών καταγράφοντας αυτόματα παρατηρήσεις χρήσης εργαλείων, δημιουργώντας σημασιολογικές περιλήψεις και καθιστώντας τες διαθέσιμες σε μελλοντικές συνεδρίες. Αυτό επιτρέπει στο Claude να διατηρεί τη συνέχεια της γνώσης για έργα ακόμη και μετά το τέλος ή την επανασύνδεση συνεδριών.
+  Το Codex-Mem διατηρεί απρόσκοπτα το πλαίσιο μεταξύ συνεδριών καταγράφοντας αυτόματα παρατηρήσεις χρήσης εργαλείων, δημιουργώντας σημασιολογικές περιλήψεις και καθιστώντας τες διαθέσιμες σε μελλοντικές συνεδρίες. Αυτό επιτρέπει στο Claude να διατηρεί τη συνέχεια της γνώσης για έργα ακόμη και μετά το τέλος ή την επανασύνδεση συνεδριών.
 </p>
 
 ---
@@ -102,9 +102,9 @@
 Ξεκινήστε μια νέα συνεδρία Claude Code στο τερματικό και εισάγετε τις ακόλουθες εντολές:
 
 ```
-> /plugin marketplace add thedotmack/claude-mem
+> /plugin marketplace add thedotmack/codex-mem
 
-> /plugin install claude-mem
+> /plugin install codex-mem
 ```
 
 Επανεκκινήστε το Claude Code. Το πλαίσιο από προηγούμενες συνεδρίες θα εμφανιστεί αυτόματα σε νέες συνεδρίες.
@@ -130,31 +130,31 @@
 
 ### Ξεκινώντας
 
-- **[Οδηγός Εγκατάστασης](https://docs.claude-mem.ai/installation)** - Γρήγορη εκκίνηση & προηγμένη εγκατάσταση
-- **[Οδηγός Χρήσης](https://docs.claude-mem.ai/usage/getting-started)** - Πώς λειτουργεί αυτόματα το Claude-Mem
-- **[Εργαλεία Αναζήτησης](https://docs.claude-mem.ai/usage/search-tools)** - Ερωτήματα στο ιστορικό του έργου σας με φυσική γλώσσα
-- **[Χαρακτηριστικά Beta](https://docs.claude-mem.ai/beta-features)** - Δοκιμάστε πειραματικά χαρακτηριστικά όπως το Endless Mode
+- **[Οδηγός Εγκατάστασης](https://docs.codex-mem.ai/installation)** - Γρήγορη εκκίνηση & προηγμένη εγκατάσταση
+- **[Οδηγός Χρήσης](https://docs.codex-mem.ai/usage/getting-started)** - Πώς λειτουργεί αυτόματα το Codex-Mem
+- **[Εργαλεία Αναζήτησης](https://docs.codex-mem.ai/usage/search-tools)** - Ερωτήματα στο ιστορικό του έργου σας με φυσική γλώσσα
+- **[Χαρακτηριστικά Beta](https://docs.codex-mem.ai/beta-features)** - Δοκιμάστε πειραματικά χαρακτηριστικά όπως το Endless Mode
 
 ### Βέλτιστες Πρακτικές
 
-- **[Μηχανική Πλαισίου](https://docs.claude-mem.ai/context-engineering)** - Αρχές βελτιστοποίησης πλαισίου για AI agents
-- **[Προοδευτική Αποκάλυψη](https://docs.claude-mem.ai/progressive-disclosure)** - Φιλοσοφία πίσω από τη στρατηγική προετοιμασίας πλαισίου του Claude-Mem
+- **[Μηχανική Πλαισίου](https://docs.codex-mem.ai/context-engineering)** - Αρχές βελτιστοποίησης πλαισίου για AI agents
+- **[Προοδευτική Αποκάλυψη](https://docs.codex-mem.ai/progressive-disclosure)** - Φιλοσοφία πίσω από τη στρατηγική προετοιμασίας πλαισίου του Codex-Mem
 
 ### Αρχιτεκτονική
 
-- **[Επισκόπηση](https://docs.claude-mem.ai/architecture/overview)** - Συστατικά στοιχεία συστήματος & ροή δεδομένων
-- **[Εξέλιξη Αρχιτεκτονικής](https://docs.claude-mem.ai/architecture-evolution)** - Το ταξίδι από το v3 στο v5
-- **[Αρχιτεκτονική Hooks](https://docs.claude-mem.ai/hooks-architecture)** - Πώς το Claude-Mem χρησιμοποιεί lifecycle hooks
-- **[Αναφορά Hooks](https://docs.claude-mem.ai/architecture/hooks)** - Επεξήγηση 7 hook scripts
-- **[Υπηρεσία Worker](https://docs.claude-mem.ai/architecture/worker-service)** - HTTP API & διαχείριση Bun
-- **[Βάση Δεδομένων](https://docs.claude-mem.ai/architecture/database)** - Σχήμα SQLite & αναζήτηση FTS5
-- **[Αρχιτεκτονική Αναζήτησης](https://docs.claude-mem.ai/architecture/search-architecture)** - Υβριδική αναζήτηση με βάση δεδομένων διανυσμάτων Chroma
+- **[Επισκόπηση](https://docs.codex-mem.ai/architecture/overview)** - Συστατικά στοιχεία συστήματος & ροή δεδομένων
+- **[Εξέλιξη Αρχιτεκτονικής](https://docs.codex-mem.ai/architecture-evolution)** - Το ταξίδι από το v3 στο v5
+- **[Αρχιτεκτονική Hooks](https://docs.codex-mem.ai/hooks-architecture)** - Πώς το Codex-Mem χρησιμοποιεί lifecycle hooks
+- **[Αναφορά Hooks](https://docs.codex-mem.ai/architecture/hooks)** - Επεξήγηση 7 hook scripts
+- **[Υπηρεσία Worker](https://docs.codex-mem.ai/architecture/worker-service)** - HTTP API & διαχείριση Bun
+- **[Βάση Δεδομένων](https://docs.codex-mem.ai/architecture/database)** - Σχήμα SQLite & αναζήτηση FTS5
+- **[Αρχιτεκτονική Αναζήτησης](https://docs.codex-mem.ai/architecture/search-architecture)** - Υβριδική αναζήτηση με βάση δεδομένων διανυσμάτων Chroma
 
 ### Διαμόρφωση & Ανάπτυξη
 
-- **[Διαμόρφωση](https://docs.claude-mem.ai/configuration)** - Μεταβλητές περιβάλλοντος & ρυθμίσεις
-- **[Ανάπτυξη](https://docs.claude-mem.ai/development)** - Κατασκευή, δοκιμή, συνεισφορά
-- **[Αντιμετώπιση Προβλημάτων](https://docs.claude-mem.ai/troubleshooting)** - Συνήθη προβλήματα & λύσεις
+- **[Διαμόρφωση](https://docs.codex-mem.ai/configuration)** - Μεταβλητές περιβάλλοντος & ρυθμίσεις
+- **[Ανάπτυξη](https://docs.codex-mem.ai/development)** - Κατασκευή, δοκιμή, συνεισφορά
+- **[Αντιμετώπιση Προβλημάτων](https://docs.codex-mem.ai/troubleshooting)** - Συνήθη προβλήματα & λύσεις
 
 ---
 
@@ -169,13 +169,13 @@
 5. **Δεξιότητα mem-search** - Ερωτήματα φυσικής γλώσσας με προοδευτική αποκάλυψη
 6. **Βάση Δεδομένων Διανυσμάτων Chroma** - Υβριδική σημασιολογική + αναζήτηση λέξεων-κλειδιών για έξυπνη ανάκτηση πλαισίου
 
-Δείτε [Επισκόπηση Αρχιτεκτονικής](https://docs.claude-mem.ai/architecture/overview) για λεπτομέρειες.
+Δείτε [Επισκόπηση Αρχιτεκτονικής](https://docs.codex-mem.ai/architecture/overview) για λεπτομέρειες.
 
 ---
 
 ## Δεξιότητα mem-search
 
-Το Claude-Mem παρέχει έξυπνη αναζήτηση μέσω της δεξιότητας mem-search που ενεργοποιείται αυτόματα όταν ρωτάτε για παλαιότερη εργασία:
+Το Codex-Mem παρέχει έξυπνη αναζήτηση μέσω της δεξιότητας mem-search που ενεργοποιείται αυτόματα όταν ρωτάτε για παλαιότερη εργασία:
 
 **Πώς Λειτουργεί:**
 - Απλά ρωτήστε φυσικά: *"Τι κάναμε την προηγούμενη συνεδρία;"* ή *"Διορθώσαμε αυτό το σφάλμα νωρίτερα;"*
@@ -204,15 +204,15 @@
 "What was happening when we added the viewer UI?"
 ```
 
-Δείτε [Οδηγό Εργαλείων Αναζήτησης](https://docs.claude-mem.ai/usage/search-tools) για λεπτομερή παραδείγματα.
+Δείτε [Οδηγό Εργαλείων Αναζήτησης](https://docs.codex-mem.ai/usage/search-tools) για λεπτομερή παραδείγματα.
 
 ---
 
 ## Χαρακτηριστικά Beta
 
-Το Claude-Mem προσφέρει ένα **κανάλι beta** με πειραματικά χαρακτηριστικά όπως το **Endless Mode** (βιομιμητική αρχιτεκτονική μνήμης για εκτεταμένες συνεδρίες). Εναλλαγή μεταξύ σταθερών και beta εκδόσεων από τη διεπαφή web viewer στο http://localhost:37777 → Settings.
+Το Codex-Mem προσφέρει ένα **κανάλι beta** με πειραματικά χαρακτηριστικά όπως το **Endless Mode** (βιομιμητική αρχιτεκτονική μνήμης για εκτεταμένες συνεδρίες). Εναλλαγή μεταξύ σταθερών και beta εκδόσεων από τη διεπαφή web viewer στο http://localhost:37777 → Settings.
 
-Δείτε **[Τεκμηρίωση Χαρακτηριστικών Beta](https://docs.claude-mem.ai/beta-features)** για λεπτομέρειες σχετικά με το Endless Mode και πώς να το δοκιμάσετε.
+Δείτε **[Τεκμηρίωση Χαρακτηριστικών Beta](https://docs.codex-mem.ai/beta-features)** για λεπτομέρειες σχετικά με το Endless Mode και πώς να το δοκιμάσετε.
 
 ---
 
@@ -228,15 +228,15 @@
 
 ## Διαμόρφωση
 
-Οι ρυθμίσεις διαχειρίζονται στο `~/.claude-mem/settings.json` (δημιουργείται αυτόματα με προεπιλογές κατά την πρώτη εκτέλεση). Διαμορφώστε το μοντέλο AI, τη θύρα worker, τον κατάλογο δεδομένων, το επίπεδο καταγραφής και τις ρυθμίσεις εισαγωγής πλαισίου.
+Οι ρυθμίσεις διαχειρίζονται στο `~/.codex-mem/settings.json` (δημιουργείται αυτόματα με προεπιλογές κατά την πρώτη εκτέλεση). Διαμορφώστε το μοντέλο AI, τη θύρα worker, τον κατάλογο δεδομένων, το επίπεδο καταγραφής και τις ρυθμίσεις εισαγωγής πλαισίου.
 
-Δείτε τον **[Οδηγό Διαμόρφωσης](https://docs.claude-mem.ai/configuration)** για όλες τις διαθέσιμες ρυθμίσεις και παραδείγματα.
+Δείτε τον **[Οδηγό Διαμόρφωσης](https://docs.codex-mem.ai/configuration)** για όλες τις διαθέσιμες ρυθμίσεις και παραδείγματα.
 
 ---
 
 ## Ανάπτυξη
 
-Δείτε τον **[Οδηγό Ανάπτυξης](https://docs.claude-mem.ai/development)** για οδηγίες κατασκευής, δοκιμών και ροής εργασίας συνεισφοράς.
+Δείτε τον **[Οδηγό Ανάπτυξης](https://docs.codex-mem.ai/development)** για οδηγίες κατασκευής, δοκιμών και ροής εργασίας συνεισφοράς.
 
 ---
 
@@ -244,7 +244,7 @@
 
 Εάν αντιμετωπίζετε προβλήματα, περιγράψτε το πρόβλημα στο Claude και η δεξιότητα troubleshoot θα διαγνώσει αυτόματα και θα παράσχει λύσεις.
 
-Δείτε τον **[Οδηγό Αντιμετώπισης Προβλημάτων](https://docs.claude-mem.ai/troubleshooting)** για συνήθη προβλήματα και λύσεις.
+Δείτε τον **[Οδηγό Αντιμετώπισης Προβλημάτων](https://docs.codex-mem.ai/troubleshooting)** για συνήθη προβλήματα και λύσεις.
 
 ---
 
@@ -267,7 +267,7 @@ npm run bug-report
 4. Ενημερώστε την τεκμηρίωση
 5. Υποβάλετε ένα Pull Request
 
-Δείτε τον [Οδηγό Ανάπτυξης](https://docs.claude-mem.ai/development) για τη ροή εργασίας συνεισφοράς.
+Δείτε τον [Οδηγό Ανάπτυξης](https://docs.codex-mem.ai/development) για τη ροή εργασίας συνεισφοράς.
 
 ---
 
@@ -293,8 +293,8 @@ Copyright (C) 2025 Alex Newman (@thedotmack). Με επιφύλαξη παντό
 ## Υποστήριξη
 
 - **Τεκμηρίωση**: [docs/](docs/)
-- **Ζητήματα**: [GitHub Issues](https://github.com/thedotmack/claude-mem/issues)
-- **Repository**: [github.com/thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+- **Ζητήματα**: [GitHub Issues](https://github.com/thedotmack/codex-mem/issues)
+- **Repository**: [github.com/thedotmack/codex-mem](https://github.com/thedotmack/codex-mem)
 - **Συγγραφέας**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
 
 ---

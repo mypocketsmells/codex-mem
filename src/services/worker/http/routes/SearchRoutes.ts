@@ -362,7 +362,7 @@ export class SearchRoutes extends BaseRouteHandler {
       examples: [
         'curl "http://localhost:37777/api/search/observations?query=authentication&limit=5"',
         'curl "http://localhost:37777/api/search/by-type?type=bugfix&limit=10"',
-        'curl "http://localhost:37777/api/context/recent?project=claude-mem&limit=3"',
+        'curl "http://localhost:37777/api/context/recent?project=codex-mem&limit=3"',
         'curl "http://localhost:37777/api/context/timeline?anchor=123&depth_before=5&depth_after=5"'
       ]
     });

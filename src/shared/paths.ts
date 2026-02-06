@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { SettingsDefaultsManager } from './SettingsDefaultsManager.js';
 import { logger } from '../utils/logger.js';
+import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from './product-config.js';
 
 // Get __dirname that works in both ESM (hooks) and CJS (worker) contexts
 function getDirname(): string {
@@ -19,13 +20,13 @@ function getDirname(): string {
 const _dirname = getDirname();
 
 /**
- * Simple path configuration for claude-mem
+ * Simple path configuration for codex-mem
  * Standard paths based on Claude Code conventions
  */
 
 // Base directories
 export const DATA_DIR = SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR');
-// Note: CLAUDE_CONFIG_DIR is a Claude Code setting, not claude-mem, so leave as env var
+// Note: CLAUDE_CONFIG_DIR is a Claude Code setting, not codex-mem, so leave as env var
 export const CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 
 // Data subdirectories
@@ -35,7 +36,20 @@ export const TRASH_DIR = join(DATA_DIR, 'trash');
 export const BACKUPS_DIR = join(DATA_DIR, 'backups');
 export const MODES_DIR = join(DATA_DIR, 'modes');
 export const USER_SETTINGS_PATH = join(DATA_DIR, 'settings.json');
-export const DB_PATH = join(DATA_DIR, 'claude-mem.db');
+const CANONICAL_DB_FILENAME = `${CANONICAL_PRODUCT_NAME}.db`;
+const LEGACY_DB_FILENAME = `${LEGACY_PRODUCT_NAME}.db`;
+
+function resolveDatabasePath(): string {
+  const canonicalDbPath = join(DATA_DIR, CANONICAL_DB_FILENAME);
+  if (existsSync(canonicalDbPath)) return canonicalDbPath;
+
+  const legacyDbPath = join(DATA_DIR, LEGACY_DB_FILENAME);
+  if (existsSync(legacyDbPath)) return legacyDbPath;
+
+  return canonicalDbPath;
+}
+
+export const DB_PATH = resolveDatabasePath();
 export const VECTOR_DB_DIR = join(DATA_DIR, 'vector-db');
 
 // Observer sessions directory - used as cwd for SDK queries

@@ -691,12 +691,12 @@ async function main() {
       // Existing logic unchanged
       const platform = process.argv[3];
       const event = process.argv[4];
-      if (!platform || !event) {
-        console.error('Usage: claude-mem hook <platform> <event>');
-        console.error('Platforms: claude-code, cursor, raw');
-        console.error('Events: context, session-init, observation, summarize');
-        process.exit(1);
-      }
+        if (!platform || !event) {
+          console.error('Usage: codex-mem hook <platform> <event> (legacy: claude-mem hook <platform> <event>)');
+          console.error('Platforms: claude-code, cursor, codex, raw');
+          console.error('Events: context, session-init, observation, summarize');
+          process.exit(1);
+        }
 
       // Check if worker is already running on port
       const portInUse = await isPortInUse(port);
