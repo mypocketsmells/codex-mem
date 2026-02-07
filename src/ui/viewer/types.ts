@@ -52,6 +52,9 @@ export interface StreamEvent {
   summary?: Summary;
   prompt?: UserPrompt;
   isProcessing?: boolean;
+  queueDepth?: number;
+  oldestPendingAgeMs?: number | null;
+  activeProviders?: string[];
 }
 
 export interface Settings {
@@ -61,7 +64,10 @@ export interface Settings {
   CLAUDE_MEM_WORKER_HOST: string;
 
   // AI Provider Configuration
-  CLAUDE_MEM_PROVIDER?: string;  // 'claude' | 'gemini' | 'openrouter'
+  CLAUDE_MEM_PROVIDER?: string;  // 'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama'
+  CLAUDE_MEM_PROVIDER_FALLBACK_POLICY?: string; // 'auto' | 'off' | 'codex' | 'sdk'
+  CLAUDE_MEM_CODEX_MODEL?: string;
+  CLAUDE_MEM_CODEX_REASONING_EFFORT?: string;  // 'minimal' | 'low' | 'medium' | 'high'
   CLAUDE_MEM_GEMINI_API_KEY?: string;
   CLAUDE_MEM_GEMINI_MODEL?: string;  // 'gemini-2.5-flash-lite' | 'gemini-2.5-flash' | 'gemini-3-flash'
   CLAUDE_MEM_GEMINI_RATE_LIMITING_ENABLED?: string;  // 'true' | 'false'
@@ -69,6 +75,13 @@ export interface Settings {
   CLAUDE_MEM_OPENROUTER_MODEL?: string;
   CLAUDE_MEM_OPENROUTER_SITE_URL?: string;
   CLAUDE_MEM_OPENROUTER_APP_NAME?: string;
+  CLAUDE_MEM_OLLAMA_MODE?: string; // 'native' | 'codex_bridge'
+  CLAUDE_MEM_OLLAMA_BASE_URL?: string;
+  CLAUDE_MEM_OLLAMA_MODEL?: string;
+  CLAUDE_MEM_OLLAMA_TIMEOUT_MS?: string;
+  CLAUDE_MEM_OLLAMA_TEMPERATURE?: string;
+  CLAUDE_MEM_OLLAMA_NUM_CTX?: string;
+  CLAUDE_MEM_OLLAMA_OPTIONS_JSON?: string;
 
   // Token Economics Display
   CLAUDE_MEM_CONTEXT_SHOW_READ_TOKENS?: string;
@@ -107,4 +120,13 @@ export interface DatabaseStats {
 export interface Stats {
   worker?: WorkerStats;
   database?: DatabaseStats;
+}
+
+export interface ProjectDiagnostics {
+  ingestedProjects: string[];
+  discoveredSessionProjects: string[];
+  missingProjects: string[];
+  missingCount: number;
+  scannedFiles: number;
+  lastScanEpochMs: number;
 }

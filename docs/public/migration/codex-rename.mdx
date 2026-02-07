@@ -1,0 +1,90 @@
+---
+title: "Codex-Mem Migration"
+description: "Migration guide from claude-mem to codex-mem: commands, paths, config keys, and rollback."
+---
+
+# Codex-Mem Migration Guide
+
+This guide covers migration from `claude-mem` naming to `codex-mem`.
+
+## Command Mapping
+
+Use these command updates:
+
+| Legacy | Canonical |
+| --- | --- |
+| `/plugin marketplace add thedotmack/claude-mem` | `/plugin marketplace add thedotmack/codex-mem` |
+| `/plugin install claude-mem` | `/plugin install codex-mem` |
+| `claude-mem ...` | `codex-mem ...` |
+
+Notes:
+- The project keeps compatibility behavior in a few places during transition.
+- New docs and examples should use `codex-mem` only.
+
+## Data Directory Changes
+
+Canonical data directory:
+
+```bash
+~/.codex-mem
+```
+
+Legacy directory (still readable for compatibility):
+
+```bash
+~/.claude-mem
+```
+
+Run one-time data migration:
+
+```bash
+npm run migrate:data-dir
+```
+
+Preview migration without copying files:
+
+```bash
+npm run migrate:data-dir:dry-run
+```
+
+Migration behavior:
+- Copy-based and non-destructive.
+- Writes a migration lock file to avoid repeated runs.
+- Falls back to legacy path if canonical path is absent.
+
+## Environment Key Strategy
+
+Canonical keys are `CODEX_MEM_*` where available, with fallback to legacy `CLAUDE_MEM_*`.
+
+Examples:
+- `CODEX_MEM_DATA_DIR` (fallback: `CLAUDE_MEM_DATA_DIR`)
+- `CODEX_MEM_INSTALL_ROOT` (fallback: `CLAUDE_MEM_INSTALL_ROOT`)
+
+During transition, legacy keys remain accepted for compatibility.
+
+## MCP/Integration Naming
+
+- MCP server key should be `codex-mem`.
+- Legacy `claude-mem` keys should be migrated to `codex-mem` in config when possible.
+
+## Rollback
+
+If you need to rollback temporarily:
+
+1. Stop the worker.
+2. Point `CODEX_MEM_DATA_DIR` to the previous directory, or restore from your backup.
+3. Restart the worker and verify status.
+
+Example:
+
+```bash
+CODEX_MEM_DATA_DIR="$HOME/.claude-mem" npm run worker:restart
+npm run worker:status
+```
+
+## Verification Checklist
+
+- `codex-mem` command path works.
+- Data is present under `~/.codex-mem` (or configured data dir).
+- Viewer is reachable at `http://localhost:37777`.
+- MCP tools `search`, `timeline`, and `get_observations` respond.

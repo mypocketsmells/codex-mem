@@ -23,6 +23,14 @@ import type { WorkerRef, StorageResult } from './types.js';
 import { broadcastObservation, broadcastSummary } from './ObservationBroadcaster.js';
 import { cleanupProcessedMessages } from './SessionCleanupHelper.js';
 
+function getSyntheticMemorySessionIdPrefix(agentName: string): string | null {
+  if (agentName === 'Gemini') return 'gemini';
+  if (agentName === 'OpenRouter') return 'openrouter';
+  if (agentName === 'Codex') return 'codex';
+  if (agentName === 'Ollama') return 'ollama';
+  return null;
+}
+
 /**
  * Process agent response text (parse XML, save to database, sync to Chroma, broadcast SSE)
  *
@@ -69,9 +77,23 @@ export async function processAgentResponse(
   // Get session store for atomic transaction
   const sessionStore = dbManager.getSessionStore();
 
-  // CRITICAL: Must use memorySessionId (not contentSessionId) for FK constraint
+  // CRITICAL: Must use memorySessionId (not contentSessionId) for FK constraint.
+  // Gemini/OpenRouter/Codex do not always receive a provider-issued memory ID, so
+  // we initialize a stable synthetic ID when needed.
   if (!session.memorySessionId) {
-    throw new Error('Cannot store observations: memorySessionId not yet captured');
+    const providerPrefix = getSyntheticMemorySessionIdPrefix(agentName);
+    if (!providerPrefix) {
+      throw new Error('Cannot store observations: memorySessionId not yet captured');
+    }
+
+    const syntheticMemorySessionId = `${providerPrefix}-worker-${session.contentSessionId}`;
+    session.memorySessionId = syntheticMemorySessionId;
+    sessionStore.updateMemorySessionId(session.sessionDbId, syntheticMemorySessionId);
+
+    logger.warn('SESSION', `${agentName} provider initialized synthetic memory session ID during response processing`, {
+      sessionId: session.sessionDbId,
+      memorySessionId: syntheticMemorySessionId
+    });
   }
 
   // Log pre-storage with session ID chain for verification

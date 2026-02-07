@@ -113,9 +113,9 @@ export class GeminiAgent {
   }
 
   /**
-   * Set the fallback agent (Claude SDK) for when Gemini API fails
-   * Must be set after construction to avoid circular dependency
-   */
+ * Set the fallback agent for when Gemini API fails
+ * Must be set after construction to avoid circular dependency
+ */
   setFallbackAgent(agent: FallbackAgent): void {
     this.fallbackAgent = agent;
   }
@@ -132,6 +132,8 @@ export class GeminiAgent {
       if (!apiKey) {
         throw new Error('Gemini API key not configured. Set CODEX_MEM_GEMINI_API_KEY (or CLAUDE_MEM_GEMINI_API_KEY) in settings, or GEMINI_API_KEY environment variable.');
       }
+
+      this.ensureMemorySessionId(session);
 
       // Load active mode
       const mode = ModeManager.getInstance().getActiveMode();
@@ -170,6 +172,14 @@ export class GeminiAgent {
           sessionId: session.sessionDbId,
           model
         });
+
+        if (this.fallbackAgent) {
+          logger.warn('SDK', 'Gemini init response was empty, falling back to configured provider', {
+            sessionDbId: session.sessionDbId,
+            model
+          });
+          return this.fallbackAgent.startSession(session, worker);
+        }
       }
 
       // Process pending messages
@@ -205,19 +215,27 @@ export class GeminiAgent {
           session.conversationHistory.push({ role: 'user', content: obsPrompt });
           const obsResponse = await this.queryGeminiMultiTurn(session.conversationHistory, apiKey, model, rateLimitingEnabled);
 
+          let observationResponseContent = obsResponse.content || '';
           let tokensUsed = 0;
-          if (obsResponse.content) {
+          if (observationResponseContent) {
             // Add response to conversation history
-            session.conversationHistory.push({ role: 'assistant', content: obsResponse.content });
+            session.conversationHistory.push({ role: 'assistant', content: observationResponseContent });
 
             tokensUsed = obsResponse.tokensUsed || 0;
             session.cumulativeInputTokens += Math.floor(tokensUsed * 0.7);
             session.cumulativeOutputTokens += Math.floor(tokensUsed * 0.3);
+          } else {
+            observationResponseContent = this.buildFallbackObservationXml(message);
+            session.conversationHistory.push({ role: 'assistant', content: observationResponseContent });
+            logger.warn('SDK', 'Gemini observation response was empty; storing fallback observation', {
+              sessionDbId: session.sessionDbId,
+              toolName: message.tool_name || 'unknown'
+            });
           }
 
           // Process response using shared ResponseProcessor
           await processAgentResponse(
-            obsResponse.content || '',
+            observationResponseContent,
             session,
             this.dbManager,
             this.sessionManager,
@@ -281,15 +299,15 @@ export class GeminiAgent {
         throw error;
       }
 
-      // Check if we should fall back to Claude
+      // Check if we should fall back to the configured provider
       if (shouldFallbackToClaude(error) && this.fallbackAgent) {
-        logger.warn('SDK', 'Gemini API failed, falling back to Claude SDK', {
+        logger.warn('SDK', 'Gemini API failed, falling back to configured provider', {
           sessionDbId: session.sessionDbId,
           error: error instanceof Error ? error.message : String(error),
           historyLength: session.conversationHistory.length
         });
 
-        // Fall back to Claude - it will use the same session with shared conversationHistory
+        // Fall back to configured provider - it will use the same session with shared conversationHistory
         // Note: With claim-and-delete queue pattern, messages are already deleted on claim
         return this.fallbackAgent.startSession(session, worker);
       }
@@ -349,6 +367,19 @@ export class GeminiAgent {
 
     if (!response.ok) {
       const error = await response.text();
+
+      // gemini-3-flash can be unavailable or rejected for some accounts/regions.
+      // Retry once with a widely-available flash model before failing.
+      if ((response.status === 400 || response.status === 404) && model === 'gemini-3-flash') {
+        const fallbackModel: GeminiModel = 'gemini-2.5-flash';
+        logger.warn('SDK', 'Gemini model unavailable or rejected, retrying with fallback model', {
+          requestedModel: model,
+          fallbackModel,
+          status: response.status
+        });
+        return this.queryGeminiMultiTurn(history, apiKey, fallbackModel, rateLimitingEnabled);
+      }
+
       throw new Error(`Gemini API error: ${response.status} - ${error}`);
     }
 
@@ -403,6 +434,78 @@ export class GeminiAgent {
     const rateLimitingEnabled = settings.CLAUDE_MEM_GEMINI_RATE_LIMITING_ENABLED !== 'false';
 
     return { apiKey, model, rateLimitingEnabled };
+  }
+
+  private ensureMemorySessionId(session: ActiveSession): void {
+    if (session.memorySessionId) return;
+
+    const persistedSession = this.dbManager.getSessionById(session.sessionDbId);
+    if (persistedSession.memory_session_id) {
+      session.memorySessionId = persistedSession.memory_session_id;
+      logger.info('SESSION', 'Gemini provider reusing persisted memory session ID', {
+        sessionId: session.sessionDbId,
+        memorySessionId: persistedSession.memory_session_id
+      });
+      return;
+    }
+
+    const syntheticMemorySessionId = `gemini-worker-${session.contentSessionId}`;
+    session.memorySessionId = syntheticMemorySessionId;
+    this.dbManager.getSessionStore().updateMemorySessionId(session.sessionDbId, syntheticMemorySessionId);
+
+    logger.info('SESSION', 'Gemini provider initialized synthetic memory session ID', {
+      sessionId: session.sessionDbId,
+      memorySessionId: syntheticMemorySessionId
+    });
+  }
+
+  private buildFallbackObservationXml(message: {
+    tool_name?: string;
+    tool_input?: unknown;
+    tool_response?: unknown;
+    cwd?: string;
+  }): string {
+    const toolName = message.tool_name || 'UnknownTool';
+    const toolInput = message.tool_input !== undefined ? JSON.stringify(message.tool_input) : '';
+    const toolResponse = message.tool_response !== undefined ? JSON.stringify(message.tool_response) : '';
+
+    const escapedToolName = this.escapeXml(toolName);
+    const escapedToolInput = this.escapeXml(this.truncateForFallback(toolInput, 800));
+    const escapedToolResponse = this.escapeXml(this.truncateForFallback(toolResponse, 800));
+    const escapedCwd = this.escapeXml(message.cwd || '(unknown cwd)');
+
+    return `<observation>
+  <type>discovery</type>
+  <title>Tool execution captured: ${escapedToolName}</title>
+  <subtitle>Recorded with fallback when Gemini returned empty content</subtitle>
+  <narrative>Gemini returned no parsable observation output. Captured tool execution details directly to avoid dropping memory updates.</narrative>
+  <facts>
+    <fact>Tool: ${escapedToolName}</fact>
+    <fact>CWD: ${escapedCwd}</fact>
+    <fact>Input: ${escapedToolInput}</fact>
+    <fact>Response: ${escapedToolResponse}</fact>
+  </facts>
+  <concepts>
+    <concept>what-changed</concept>
+    <concept>problem-solution</concept>
+  </concepts>
+  <files_read></files_read>
+  <files_modified></files_modified>
+</observation>`;
+  }
+
+  private truncateForFallback(value: string, maxLength: number): string {
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength)}...(truncated)`;
+  }
+
+  private escapeXml(value: string): string {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
   }
 }
 

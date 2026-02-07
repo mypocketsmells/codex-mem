@@ -8,6 +8,7 @@ import { useSettings } from './hooks/useSettings';
 import { useStats } from './hooks/useStats';
 import { usePagination } from './hooks/usePagination';
 import { useTheme } from './hooks/useTheme';
+import { useProjectDiagnostics } from './hooks/useProjectDiagnostics';
 import { Observation, Summary, UserPrompt } from './types';
 import { mergeAndDeduplicateByProject } from './utils/data';
 
@@ -19,10 +20,21 @@ export function App() {
   const [paginatedSummaries, setPaginatedSummaries] = useState<Summary[]>([]);
   const [paginatedPrompts, setPaginatedPrompts] = useState<UserPrompt[]>([]);
 
-  const { observations, summaries, prompts, projects, isProcessing, queueDepth, isConnected } = useSSE();
+  const {
+    observations,
+    summaries,
+    prompts,
+    projects,
+    isProcessing,
+    queueDepth,
+    oldestPendingAgeMs,
+    activeProviders,
+    isConnected
+  } = useSSE();
   const { settings, saveSettings, isSaving, saveStatus } = useSettings();
   const { stats, refreshStats } = useStats();
   const { preference, resolvedTheme, setThemePreference } = useTheme();
+  const { projectDiagnostics } = useProjectDiagnostics();
   const pagination = usePagination(currentFilter);
 
   // When filtering by project: ONLY use paginated data (API-filtered)
@@ -101,6 +113,9 @@ export function App() {
         onFilterChange={setCurrentFilter}
         isProcessing={isProcessing}
         queueDepth={queueDepth}
+        oldestPendingAgeMs={oldestPendingAgeMs}
+        activeProviders={activeProviders}
+        projectDiagnostics={projectDiagnostics}
         themePreference={preference}
         onThemeChange={setThemePreference}
         onContextPreviewToggle={toggleContextPreview}
@@ -128,6 +143,7 @@ export function App() {
         className="console-toggle-btn"
         onClick={toggleLogsModal}
         title="Toggle Console"
+        aria-pressed={logsModalOpen}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="4 17 10 11 4 5"></polyline>

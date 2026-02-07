@@ -87,10 +87,14 @@ export class ViewerRoutes extends BaseRouteHandler {
     // Send initial processing status (based on queue depth + active generators)
     const isProcessing = this.sessionManager.isAnySessionProcessing();
     const queueDepth = this.sessionManager.getTotalActiveWork(); // Includes queued + actively processing
+    const oldestPendingAgeMs = this.sessionManager.getOldestActiveWorkAgeMs();
+    const activeProviders = this.sessionManager.getActiveProviders();
     this.sseBroadcaster.broadcast({
       type: 'processing_status',
       isProcessing,
-      queueDepth
+      queueDepth,
+      oldestPendingAgeMs,
+      activeProviders
     });
   });
 }

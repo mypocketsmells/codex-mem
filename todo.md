@@ -16,6 +16,27 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 - [x] Completed docs/public + README canonical naming sweep to `codex-mem` paths/commands.
 - [ ] Full release pass is still pending (manual validation matrix, compatibility notes, release pipeline).
 
+## Playwright Validation Findings (2026-02-06)
+
+- [x] Fix prompt search endpoint returning empty results for valid prompt queries.
+  - Repro:
+    1. `curl "http://127.0.0.1:37777/api/prompts?project=codex-mem&limit=8"` returns prompt rows including `PLAYWRIGHT_AUDIT_FULL ...`.
+    2. `curl "http://127.0.0.1:37777/api/search/prompts?query=PLAYWRIGHT&project=codex-mem&limit=5"` returns `No user prompts found matching "PLAYWRIGHT"`.
+    3. `sqlite3 ~/.codex-mem/codex-mem.db "SELECT rowid,prompt_text FROM user_prompts_fts WHERE user_prompts_fts MATCH 'Gemini' LIMIT 5;"` returns matching rows.
+  - Suspected root cause: `src/services/worker/SearchManager.ts` `searchUserPrompts()` takes a Chroma-only path and never falls back to SQLite FTS.
+  - Done when: `/api/search/prompts` returns expected matches without requiring Chroma prompt vectors, with regression coverage.
+  - Completed: Added SQLite text-query fallback in `SessionSearch.searchUserPrompts()` and `SearchManager.searchUserPrompts()`; verified with API (`PLAYWRIGHT` query now returns prompt rows) and regression tests.
+
+- [x] Fix floating "Toggle Console" button close behavior when drawer is open.
+  - Repro (Playwright session `full-audit`): open console via toggle, then click toggle again; click is intercepted by drawer content and times out. Drawer can only be closed via internal `✕`.
+  - Done when: toggle button can both open and close the console drawer reliably, with a UI regression test.
+  - Completed: Raised `.console-toggle-btn` stacking above `.console-drawer` and added regression check for layering; Playwright confirms open->close works via the same toggle button.
+
+- [x] Investigate slow queue drain under Gemini for single-observation sessions.
+  - Repro (`playwright-live-1770374393`): one queued observation stayed pending for ~30s before completion while worker repeatedly logged Gemini empty-init fallback events.
+  - Done when: median processing latency is reduced or surfaced clearly in UI with actionable status.
+  - Completed: Surfaced explicit queue state with `oldestPendingAgeMs` + `activeProviders` through processing status APIs/SSE and added viewer header hint (`Processing gemini for Xs ... Open Console ...`) when work is slow.
+
 ## Rename Scope (Required)
 
 ### 1) Repository + Package Identity
@@ -25,7 +46,7 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 - [x] Rename plugin package identity in `plugin/.claude-plugin/plugin.json`.
 - [x] Rename marketplace plugin identity in `.claude-plugin/marketplace.json`.
 - [x] Add command/script compatibility for local log access and ingestion entrypoints in `package.json`.
-- [ ] Rename any remaining `"claude-mem"` binary, service, and process labels in source/runtime logs where user-visible.
+- [x] Rename any remaining `"claude-mem"` binary, service, and process labels in source/runtime logs where user-visible.
 - [ ] Decide whether to keep compatibility aliases (`claude-mem`) for one release cycle.
 
 ### 2) Branding and Docs
@@ -76,10 +97,10 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 
 ### 6) MCP Search + Worker Compatibility
 
-- [ ] Keep MCP server stdio interface stable for Codex MCP clients.
+- [x] Keep MCP server stdio interface stable for Codex MCP clients.
 - [x] Rename primary server identity strings where needed:
   - e.g. server names/log labels in `src/servers/mcp-server.ts`.
-- [ ] Verify `codex mcp add` flow against local built server.
+- [x] Verify `codex mcp add` flow against local built server.
 - [x] Ensure worker health/version checks tolerate non-Claude install roots for compatibility.
 
 ### 7) Claude-Specific Coupling to Remove/Abstract
@@ -88,7 +109,7 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
   - install root can now come from `CODEX_MEM_INSTALL_ROOT` / `CLAUDE_MEM_INSTALL_ROOT`.
 - [x] Introduce generic install root/env overrides for version checks.
 - [x] Audit `src/shared/paths.ts` + process managers for fixed Claude paths (core runtime paths updated to shared path helpers).
-- [ ] Ensure worker start/stop/status work without Claude plugin directories.
+- [x] Ensure worker start/stop/status work without Claude plugin directories.
 
 ## Data and Config Migration Scope (Required)
 
@@ -136,27 +157,27 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 - [x] Rename viewer labels/headings from Claude-Mem to Codex-Mem.
 - [ ] Verify logos/assets naming strategy:
   - keep existing file names initially or rename assets and references.
-- [ ] Validate SSE/event UI still functions after rename.
+- [x] Validate SSE/event UI still functions after rename.
 
 ## Testing Scope (Required)
 
 ### 13) Automated Tests
 
-- [ ] Add/adjust unit tests for remaining compatibility items:
+- [x] Add/adjust unit tests for remaining compatibility items:
   - [x] Codex adapter normalization
   - [x] legacy/new config key fallback
   - [x] legacy/new data path migration
   - [x] legacy/new context tag stripping
   - [x] Codex ingestion filtering/checkpoint/retry behavior.
-- [ ] Update integration tests for renamed command/identity strings.
-- [ ] Add MCP smoke test for `tools/list` + `search` via stdio in CI.
+- [x] Update integration tests for renamed command/identity strings.
+- [x] Add MCP smoke test for `tools/list` + `search` via stdio in CI.
 
 ### 14) Manual Validation Matrix
 
-- [ ] Codex MCP only (search/timeline/get_observations).
-- [ ] Codex with ingestion enabled (session/observation/summary capture).
-- [ ] Existing Claude plugin install upgrade path.
-- [ ] Cursor integration path + context file updates.
+- [x] Codex MCP only (search/timeline/get_observations).
+- [x] Codex with ingestion enabled (session/observation/summary capture).
+- [x] Existing Claude plugin install upgrade path.
+- [x] Cursor integration path + context file updates.
 - [ ] Windows/macOS/Linux worker lifecycle and startup.
 
 ## Release and Backward Compatibility Scope (Required)
@@ -170,17 +191,16 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 
 ### 16) Release Tasks
 
-- [ ] Update release scripts/automation references if they assume `claude-mem`.
+- [x] Update release scripts/automation references if they assume `claude-mem`.
 - [ ] Regenerate changelog via normal workflow after migration PR(s).
-- [ ] Publish migration notes:
+- [x] Publish migration notes:
   - old -> new command mappings
   - data path changes
   - config key changes.
 
 ## Immediate Next Steps
 
-1. Verify `codex mcp add` flow against local built server and add a smoke test.
-2. Run manual validation matrix (Codex/Cursor/upgrade path + cross-platform worker lifecycle).
-3. Decide docs domain + redirects (`docs.codex-mem.ai` strategy).
-4. Decide logo asset rename strategy (`claude-mem-logo-*.webp` -> `codex-mem-logo-*.webp`) and update references atomically.
-5. Publish migration notes and compatibility/deprecation timeline.
+1. Run remaining manual validation matrix row for cross-platform lifecycle (Windows/macOS/Linux).
+2. Decide docs domain + redirects (`docs.codex-mem.ai` strategy).
+3. Decide logo asset rename strategy (`claude-mem-logo-*.webp` -> `codex-mem-logo-*.webp`) and update references atomically.
+4. Finalize compatibility/deprecation timeline for legacy aliases/keys.

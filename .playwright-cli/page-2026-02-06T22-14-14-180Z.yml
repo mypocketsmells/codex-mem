@@ -1,0 +1,23 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "1 codex-mem" [level=1] [ref=e23]:
+      - generic [ref=e24]: "1"
+      - generic [ref=e6]: codex-mem
+    - generic [ref=e7]:
+      - combobox [ref=e9] [cursor=pointer]:
+        - option "All Projects" [selected]
+        - option "project-playwright-isolated"
+      - 'button "Theme: System (click for Light)" [ref=e10] [cursor=pointer]':
+        - img [ref=e11]
+      - button "Settings" [ref=e13] [cursor=pointer]:
+        - img [ref=e14]
+  - generic [ref=e18]:
+    - generic [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: Prompt
+        - generic [ref=e29]: project-playwright-isolated
+      - generic [ref=e30]: hello from isolated codex transcript
+      - generic [ref=e32]: "#1 • 2/6/2026, 4:14:07 PM"
+    - generic [ref=e33]: No more items to load
+  - button "Toggle Console" [ref=e20] [cursor=pointer]:
+    - img [ref=e21]

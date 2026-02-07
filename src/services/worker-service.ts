@@ -15,6 +15,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { getWorkerPort, getWorkerHost } from '../shared/worker-utils.js';
 import { SettingsDefaultsManager } from '../shared/SettingsDefaultsManager.js';
+import { USER_SETTINGS_PATH } from '../shared/paths.js';
+import { normalizeProviderFallbackPolicy } from '../shared/provider-fallback-policy.js';
 import { logger } from '../utils/logger.js';
 
 // Windows: avoid repeated spawn popups when startup fails (issue #921)
@@ -86,20 +88,24 @@ import {
   updateCursorContextForProject,
   handleCursorCommand
 } from './integrations/CursorHooksInstaller.js';
+import { handleCodexAppCommand } from './integrations/CodexAppInstaller.js';
 
 // Service layer imports
 import { DatabaseManager } from './worker/DatabaseManager.js';
 import { SessionManager } from './worker/SessionManager.js';
 import { SSEBroadcaster } from './worker/SSEBroadcaster.js';
 import { SDKAgent } from './worker/SDKAgent.js';
-import { GeminiAgent } from './worker/GeminiAgent.js';
-import { OpenRouterAgent } from './worker/OpenRouterAgent.js';
+import { CodexAgent, isCodexAvailable } from './worker/CodexAgent.js';
+import { GeminiAgent, isGeminiAvailable } from './worker/GeminiAgent.js';
+import { OpenRouterAgent, isOpenRouterAvailable } from './worker/OpenRouterAgent.js';
+import { OllamaAgent } from './worker/OllamaAgent.js';
 import { PaginationHelper } from './worker/PaginationHelper.js';
 import { SettingsManager } from './worker/SettingsManager.js';
 import { SearchManager } from './worker/SearchManager.js';
 import { FormattingService } from './worker/FormattingService.js';
 import { TimelineService } from './worker/TimelineService.js';
 import { SessionEventBroadcaster } from './worker/events/SessionEventBroadcaster.js';
+import type { FallbackAgent } from './worker/agents/types.js';
 
 // HTTP route handlers
 import { ViewerRoutes } from './worker/http/routes/ViewerRoutes.js';
@@ -151,8 +157,10 @@ export class WorkerService {
   private sessionManager: SessionManager;
   private sseBroadcaster: SSEBroadcaster;
   private sdkAgent: SDKAgent;
+  private codexAgent: CodexAgent;
   private geminiAgent: GeminiAgent;
   private openRouterAgent: OpenRouterAgent;
+  private ollamaAgent: OllamaAgent;
   private paginationHelper: PaginationHelper;
   private settingsManager: SettingsManager;
   private sessionEventBroadcaster: SessionEventBroadcaster;
@@ -178,8 +186,21 @@ export class WorkerService {
     this.sessionManager = new SessionManager(this.dbManager);
     this.sseBroadcaster = new SSEBroadcaster();
     this.sdkAgent = new SDKAgent(this.dbManager, this.sessionManager);
+    this.codexAgent = new CodexAgent(this.dbManager, this.sessionManager);
     this.geminiAgent = new GeminiAgent(this.dbManager, this.sessionManager);
     this.openRouterAgent = new OpenRouterAgent(this.dbManager, this.sessionManager);
+    this.ollamaAgent = new OllamaAgent(this.dbManager, this.sessionManager);
+    const providerFallbackAgent: FallbackAgent = {
+      startSession: async (session, worker) => {
+        const fallbackTargetAgent = this.resolveProviderFallbackAgent();
+        if (!fallbackTargetAgent) {
+          throw new Error('Provider fallback is disabled or unavailable (CLAUDE_MEM_PROVIDER_FALLBACK_POLICY).');
+        }
+        return fallbackTargetAgent.startSession(session, worker);
+      }
+    };
+    this.geminiAgent.setFallbackAgent(providerFallbackAgent);
+    this.openRouterAgent.setFallbackAgent(providerFallbackAgent);
 
     this.paginationHelper = new PaginationHelper(this.dbManager);
     this.settingsManager = new SettingsManager(this.dbManager);
@@ -212,6 +233,25 @@ export class WorkerService {
     this.registerSignalHandlers();
   }
 
+  private resolveProviderFallbackAgent(): FallbackAgent | null {
+    const settings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
+    const fallbackPolicy = normalizeProviderFallbackPolicy(settings.CLAUDE_MEM_PROVIDER_FALLBACK_POLICY);
+
+    if (fallbackPolicy === 'off') {
+      return null;
+    }
+
+    if (fallbackPolicy === 'sdk') {
+      return this.sdkAgent;
+    }
+
+    if (fallbackPolicy === 'codex') {
+      return isCodexAvailable() ? this.codexAgent : null;
+    }
+
+    return isCodexAvailable() ? this.codexAgent : this.sdkAgent;
+  }
+
   /**
    * Register signal handlers for graceful shutdown
    */
@@ -235,7 +275,19 @@ export class WorkerService {
   private registerRoutes(): void {
     // Standard routes
     this.server.registerRoutes(new ViewerRoutes(this.sseBroadcaster, this.dbManager, this.sessionManager));
-    this.server.registerRoutes(new SessionRoutes(this.sessionManager, this.dbManager, this.sdkAgent, this.geminiAgent, this.openRouterAgent, this.sessionEventBroadcaster, this));
+    this.server.registerRoutes(
+      new SessionRoutes(
+        this.sessionManager,
+        this.dbManager,
+        this.sdkAgent,
+        this.codexAgent,
+        this.geminiAgent,
+        this.openRouterAgent,
+        this.ollamaAgent,
+        this.sessionEventBroadcaster,
+        this
+      )
+    );
     this.server.registerRoutes(new DataRoutes(this.paginationHelper, this.dbManager, this.sessionManager, this.sseBroadcaster, this, this.startTime));
     this.server.registerRoutes(new SettingsRoutes(this.settingsManager));
     this.server.registerRoutes(new LogsRoutes());
@@ -402,19 +454,72 @@ export class WorkerService {
     if (!session) return;
 
     const sid = session.sessionDbId;
-    logger.info('SYSTEM', `Starting generator (${source})`, { sessionId: sid });
+    const provider = this.getRecoveryProvider();
+    const settings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
+    const ollamaMode = settings.CLAUDE_MEM_OLLAMA_MODE === 'codex_bridge' ? 'codex_bridge' : 'native';
+    const agent = provider === 'codex'
+      ? this.codexAgent
+      : provider === 'gemini'
+        ? this.geminiAgent
+        : provider === 'openrouter'
+          ? this.openRouterAgent
+          : provider === 'ollama'
+            ? (ollamaMode === 'codex_bridge' ? this.codexAgent : this.ollamaAgent)
+          : this.sdkAgent;
+    const providerLabel = provider === 'codex'
+      ? 'Codex CLI'
+      : provider === 'gemini'
+        ? 'Gemini'
+        : provider === 'openrouter'
+          ? 'OpenRouter'
+          : provider === 'ollama'
+            ? (ollamaMode === 'codex_bridge' ? 'Codex CLI (Ollama bridge)' : 'Ollama')
+          : 'Claude SDK';
 
-    session.generatorPromise = this.sdkAgent.startSession(session, this)
+    logger.info('SYSTEM', `Starting generator (${source})`, {
+      sessionId: sid,
+      provider: providerLabel
+    });
+
+    session.currentProvider = provider;
+    session.generatorPromise = agent.startSession(session, this)
       .catch(error => {
         logger.error('SDK', 'Session generator failed', {
           sessionId: session.sessionDbId,
-          project: session.project
+          project: session.project,
+          provider: providerLabel
         }, error as Error);
       })
       .finally(() => {
         session.generatorPromise = null;
+        session.currentProvider = null;
         this.broadcastProcessingStatus();
       });
+  }
+
+  private getRecoveryProvider(): 'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama' {
+    const settings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
+    const configuredProvider = settings.CLAUDE_MEM_PROVIDER;
+
+    if (configuredProvider === 'openrouter') {
+      return isOpenRouterAvailable() ? 'openrouter' : 'claude';
+    }
+    if (configuredProvider === 'gemini') {
+      return isGeminiAvailable() ? 'gemini' : 'claude';
+    }
+    if (configuredProvider === 'codex') {
+      return isCodexAvailable() ? 'codex' : 'claude';
+    }
+    if (configuredProvider === 'ollama') {
+      return 'ollama';
+    }
+
+    // Legacy provider value: use Codex when available.
+    if (configuredProvider === 'claude' && isCodexAvailable()) {
+      return 'codex';
+    }
+
+    return 'claude';
   }
 
   /**
@@ -496,17 +601,23 @@ export class WorkerService {
     const isProcessing = this.sessionManager.isAnySessionProcessing();
     const queueDepth = this.sessionManager.getTotalActiveWork();
     const activeSessions = this.sessionManager.getActiveSessionCount();
+    const oldestPendingAgeMs = this.sessionManager.getOldestActiveWorkAgeMs();
+    const activeProviders = this.sessionManager.getActiveProviders();
 
     logger.info('WORKER', 'Broadcasting processing status', {
       isProcessing,
       queueDepth,
-      activeSessions
+      activeSessions,
+      oldestPendingAgeMs: oldestPendingAgeMs ?? 0,
+      activeProviders
     });
 
     this.sseBroadcaster.broadcast({
       type: 'processing_status',
       isProcessing,
-      queueDepth
+      queueDepth,
+      oldestPendingAgeMs,
+      activeProviders
     });
   }
 }
@@ -681,6 +792,12 @@ async function main() {
       process.exit(cursorResult);
     }
 
+    case 'codex-app': {
+      const subcommand = process.argv[3];
+      const codexAppResult = await handleCodexAppCommand(subcommand, process.argv[1] || '');
+      process.exit(codexAppResult);
+    }
+
     case 'hook': {
       // Auto-start worker if not running
       const workerReady = await ensureWorkerStarted(port);
@@ -692,7 +809,7 @@ async function main() {
       const platform = process.argv[3];
       const event = process.argv[4];
         if (!platform || !event) {
-          console.error('Usage: codex-mem hook <platform> <event> (legacy: claude-mem hook <platform> <event>)');
+          console.error('Usage: codex-mem hook <platform> <event>');
           console.error('Platforms: claude-code, cursor, codex, raw');
           console.error('Events: context, session-init, observation, summarize');
           process.exit(1);

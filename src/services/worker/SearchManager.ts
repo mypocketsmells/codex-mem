@@ -997,6 +997,22 @@ export class SearchManager {
       }
     }
 
+    // Fallback to SQLite text/filter query when Chroma has no prompt vectors
+    // or when Chroma is unavailable.
+    if (results.length === 0) {
+      try {
+        results = this.sessionSearch.searchUserPrompts(query, options);
+        if (results.length > 0) {
+          logger.debug('SEARCH', 'Fell back to SQLite prompt search', { count: results.length, query: query || '' });
+        }
+      } catch (error) {
+        logger.debug('SEARCH', 'SQLite fallback not applicable for prompt search', {
+          query: query || '',
+          reason: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+
     if (results.length === 0) {
       return {
         content: [{

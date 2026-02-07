@@ -259,7 +259,7 @@ export class SearchRoutes extends BaseRouteHandler {
    */
   private handleSearchHelp = this.wrapHandler((req: Request, res: Response): void => {
     res.json({
-      title: 'Claude-Mem Search API',
+      title: 'Codex-Mem Search API',
       description: 'HTTP API for searching persistent memory',
       endpoints: [
         {

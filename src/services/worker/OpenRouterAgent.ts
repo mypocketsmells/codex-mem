@@ -72,9 +72,9 @@ export class OpenRouterAgent {
   }
 
   /**
-   * Set the fallback agent (Claude SDK) for when OpenRouter API fails
-   * Must be set after construction to avoid circular dependency
-   */
+ * Set the fallback agent for when OpenRouter API fails
+ * Must be set after construction to avoid circular dependency
+ */
   setFallbackAgent(agent: FallbackAgent): void {
     this.fallbackAgent = agent;
   }
@@ -241,15 +241,15 @@ export class OpenRouterAgent {
         throw error;
       }
 
-      // Check if we should fall back to Claude
+      // Check if we should fall back to the configured provider
       if (shouldFallbackToClaude(error) && this.fallbackAgent) {
-        logger.warn('SDK', 'OpenRouter API failed, falling back to Claude SDK', {
+        logger.warn('SDK', 'OpenRouter API failed, falling back to configured provider', {
           sessionDbId: session.sessionDbId,
           error: error instanceof Error ? error.message : String(error),
           historyLength: session.conversationHistory.length
         });
 
-        // Fall back to Claude - it will use the same session with shared conversationHistory
+        // Fall back to configured provider - it will use the same session with shared conversationHistory
         // Note: With claim-and-delete queue pattern, messages are already deleted on claim
         return this.fallbackAgent.startSession(session, worker);
       }
@@ -348,7 +348,7 @@ export class OpenRouterAgent {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': siteUrl || 'https://github.com/thedotmack/codex-mem',
+        ...(siteUrl ? { 'HTTP-Referer': siteUrl } : {}),
         'X-Title': appName || 'codex-mem',
         'Content-Type': 'application/json',
       },

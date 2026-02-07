@@ -350,8 +350,20 @@ describe('SettingsDefaultsManager', () => {
 
       // Provider settings
       expect(defaults.CLAUDE_MEM_PROVIDER).toBeDefined();
+      expect(defaults.CLAUDE_MEM_PROVIDER).toBe('codex');
+      expect(defaults.CLAUDE_MEM_PROVIDER_FALLBACK_POLICY).toBeDefined();
+      expect(defaults.CLAUDE_MEM_PROVIDER_FALLBACK_POLICY).toBe('auto');
+      expect(defaults.CLAUDE_MEM_CODEX_MODEL).toBe('gpt-5');
+      expect(defaults.CLAUDE_MEM_CODEX_REASONING_EFFORT).toBe('high');
       expect(defaults.CLAUDE_MEM_GEMINI_API_KEY).toBeDefined();
       expect(defaults.CLAUDE_MEM_OPENROUTER_API_KEY).toBeDefined();
+      expect(defaults.CLAUDE_MEM_OLLAMA_MODE).toBe('native');
+      expect(defaults.CLAUDE_MEM_OLLAMA_BASE_URL).toBe('http://127.0.0.1:11434');
+      expect(defaults.CLAUDE_MEM_OLLAMA_MODEL).toBe('gemma3:4b');
+      expect(defaults.CLAUDE_MEM_OLLAMA_TIMEOUT_MS).toBe('120000');
+      expect(defaults.CLAUDE_MEM_OLLAMA_TEMPERATURE).toBe('0.2');
+      expect(defaults.CLAUDE_MEM_OLLAMA_NUM_CTX).toBe('8192');
+      expect(defaults.CLAUDE_MEM_OLLAMA_OPTIONS_JSON).toBe('{}');
 
       // System settings
       expect(defaults.CLAUDE_MEM_DATA_DIR).toBeDefined();

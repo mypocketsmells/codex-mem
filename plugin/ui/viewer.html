@@ -549,6 +549,23 @@
       font-size: 13px;
     }
 
+    .processing-hint {
+      max-width: 260px;
+      padding: 0 10px;
+      height: 30px;
+      border-radius: 15px;
+      border: 1px solid var(--color-border-primary);
+      background: var(--color-bg-card);
+      color: var(--color-text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .settings-btn,
     .theme-toggle-btn {
       background: var(--color-bg-card);
@@ -2489,7 +2506,7 @@
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       transition: all 0.2s ease;
-      z-index: 999;
+      z-index: 1001;
     }
 
     .console-toggle-btn:hover {

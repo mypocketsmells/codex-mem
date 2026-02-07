@@ -11,8 +11,15 @@ export function useSSE() {
   const [isConnected, setIsConnected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [queueDepth, setQueueDepth] = useState(0);
+  const [oldestPendingAgeMs, setOldestPendingAgeMs] = useState<number | null>(null);
+  const [activeProviders, setActiveProviders] = useState<string[]>([]);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const addProjectIfMissing = (project: string | undefined) => {
+    if (!project || !project.trim()) return;
+    setProjects(prev => prev.includes(project) ? prev : [project, ...prev]);
+  };
 
   useEffect(() => {
     const connect = () => {
@@ -62,6 +69,7 @@ export function useSSE() {
             if (data.observation) {
               console.log('[SSE] New observation:', data.observation.id);
               setObservations(prev => [data.observation, ...prev]);
+              addProjectIfMissing(data.observation.project);
             }
             break;
 
@@ -70,6 +78,7 @@ export function useSSE() {
               const summary = data.summary;
               console.log('[SSE] New summary:', summary.id);
               setSummaries(prev => [summary, ...prev]);
+              addProjectIfMissing(summary.project);
             }
             break;
 
@@ -78,6 +87,7 @@ export function useSSE() {
               const prompt = data.prompt;
               console.log('[SSE] New prompt:', prompt.id);
               setPrompts(prev => [prompt, ...prev]);
+              addProjectIfMissing(prompt.project);
             }
             break;
 
@@ -86,6 +96,8 @@ export function useSSE() {
               console.log('[SSE] Processing status:', data.isProcessing, 'Queue depth:', data.queueDepth);
               setIsProcessing(data.isProcessing);
               setQueueDepth(data.queueDepth || 0);
+              setOldestPendingAgeMs(typeof data.oldestPendingAgeMs === 'number' ? data.oldestPendingAgeMs : null);
+              setActiveProviders(Array.isArray(data.activeProviders) ? data.activeProviders : []);
             }
             break;
         }
@@ -105,5 +117,15 @@ export function useSSE() {
     };
   }, []);
 
-  return { observations, summaries, prompts, projects, isProcessing, queueDepth, isConnected };
+  return {
+    observations,
+    summaries,
+    prompts,
+    projects,
+    isProcessing,
+    queueDepth,
+    oldestPendingAgeMs,
+    activeProviders,
+    isConnected
+  };
 }

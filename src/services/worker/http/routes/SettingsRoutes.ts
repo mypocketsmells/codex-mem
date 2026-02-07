@@ -15,6 +15,7 @@ import { getBranchInfo, switchBranch, pullUpdates } from '../../BranchManager.js
 import { ModeManager } from '../../domain/ModeManager.js';
 import { BaseRouteHandler } from '../BaseRouteHandler.js';
 import { SettingsDefaultsManager } from '../../../../shared/SettingsDefaultsManager.js';
+import { isProviderFallbackPolicy } from '../../../../shared/provider-fallback-policy.js';
 import { clearPortCache } from '../../../../shared/worker-utils.js';
 import { USER_SETTINGS_PATH } from '../../../../shared/paths.js';
 
@@ -90,6 +91,9 @@ export class SettingsRoutes extends BaseRouteHandler {
       'CLAUDE_MEM_WORKER_HOST',
       // AI Provider Configuration
       'CLAUDE_MEM_PROVIDER',
+      'CLAUDE_MEM_PROVIDER_FALLBACK_POLICY',
+      'CLAUDE_MEM_CODEX_MODEL',
+      'CLAUDE_MEM_CODEX_REASONING_EFFORT',
       'CLAUDE_MEM_GEMINI_API_KEY',
       'CLAUDE_MEM_GEMINI_MODEL',
       'CLAUDE_MEM_GEMINI_RATE_LIMITING_ENABLED',
@@ -100,6 +104,14 @@ export class SettingsRoutes extends BaseRouteHandler {
       'CLAUDE_MEM_OPENROUTER_APP_NAME',
       'CLAUDE_MEM_OPENROUTER_MAX_CONTEXT_MESSAGES',
       'CLAUDE_MEM_OPENROUTER_MAX_TOKENS',
+      // Ollama Configuration
+      'CLAUDE_MEM_OLLAMA_MODE',
+      'CLAUDE_MEM_OLLAMA_BASE_URL',
+      'CLAUDE_MEM_OLLAMA_MODEL',
+      'CLAUDE_MEM_OLLAMA_TIMEOUT_MS',
+      'CLAUDE_MEM_OLLAMA_TEMPERATURE',
+      'CLAUDE_MEM_OLLAMA_NUM_CTX',
+      'CLAUDE_MEM_OLLAMA_OPTIONS_JSON',
       // System Configuration
       'CLAUDE_MEM_DATA_DIR',
       'CLAUDE_MEM_LOG_LEVEL',
@@ -230,11 +242,51 @@ export class SettingsRoutes extends BaseRouteHandler {
    * Validate all settings from request body (single source of truth)
    */
   private validateSettings(settings: any): { valid: boolean; error?: string } {
+    const currentSettings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
+    const effectiveProvider = String(
+      settings.CLAUDE_MEM_PROVIDER ?? currentSettings.CLAUDE_MEM_PROVIDER
+    ).trim().toLowerCase();
+    const effectiveCodexModel = String(
+      settings.CLAUDE_MEM_CODEX_MODEL ?? currentSettings.CLAUDE_MEM_CODEX_MODEL
+    ).trim();
+
     // Validate CLAUDE_MEM_PROVIDER
     if (settings.CLAUDE_MEM_PROVIDER) {
-    const validProviders = ['claude', 'gemini', 'openrouter'];
-    if (!validProviders.includes(settings.CLAUDE_MEM_PROVIDER)) {
-      return { valid: false, error: 'CLAUDE_MEM_PROVIDER must be "claude", "gemini", or "openrouter"' };
+      const validProviders = ['codex', 'claude', 'gemini', 'openrouter', 'ollama'];
+      if (!validProviders.includes(settings.CLAUDE_MEM_PROVIDER)) {
+        return { valid: false, error: 'CLAUDE_MEM_PROVIDER must be "codex", "claude", "gemini", "openrouter", or "ollama"' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_PROVIDER_FALLBACK_POLICY
+    if (settings.CLAUDE_MEM_PROVIDER_FALLBACK_POLICY !== undefined) {
+      const fallbackPolicy = String(settings.CLAUDE_MEM_PROVIDER_FALLBACK_POLICY).trim().toLowerCase();
+      if (!isProviderFallbackPolicy(fallbackPolicy)) {
+        return { valid: false, error: 'CLAUDE_MEM_PROVIDER_FALLBACK_POLICY must be one of: auto, off, codex, sdk' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_CODEX_MODEL
+    if (settings.CLAUDE_MEM_CODEX_MODEL !== undefined) {
+      const codexModel = String(settings.CLAUDE_MEM_CODEX_MODEL).trim();
+      if (!codexModel) {
+        return { valid: false, error: 'CLAUDE_MEM_CODEX_MODEL must be a non-empty model identifier' };
+      }
+    }
+
+    // Guard against known unsupported Codex model for ChatGPT-account Codex auth.
+    if (effectiveProvider === 'codex' && effectiveCodexModel.toLowerCase() === 'gpt-4') {
+      return {
+        valid: false,
+        error: 'CLAUDE_MEM_CODEX_MODEL "gpt-4" is not supported by Codex CLI in this account context. Use "gpt-5" or switch provider (Gemini/OpenRouter/Ollama) for lower-cost options.'
+      };
+    }
+
+    // Validate CLAUDE_MEM_CODEX_REASONING_EFFORT
+    if (settings.CLAUDE_MEM_CODEX_REASONING_EFFORT !== undefined) {
+      const validReasoningEfforts = ['minimal', 'low', 'medium', 'high'];
+      if (!validReasoningEfforts.includes(settings.CLAUDE_MEM_CODEX_REASONING_EFFORT)) {
+        return { valid: false, error: 'CLAUDE_MEM_CODEX_REASONING_EFFORT must be one of: minimal, low, medium, high' };
       }
     }
 
@@ -351,6 +403,72 @@ export class SettingsRoutes extends BaseRouteHandler {
         // Invalid URL format
         logger.debug('SETTINGS', 'Invalid URL format', { url: settings.CLAUDE_MEM_OPENROUTER_SITE_URL, error: error instanceof Error ? error.message : String(error) });
         return { valid: false, error: 'CLAUDE_MEM_OPENROUTER_SITE_URL must be a valid URL' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_MODE
+    if (settings.CLAUDE_MEM_OLLAMA_MODE !== undefined) {
+      const mode = String(settings.CLAUDE_MEM_OLLAMA_MODE).trim();
+      if (!['native', 'codex_bridge'].includes(mode)) {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_MODE must be "native" or "codex_bridge"' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_BASE_URL
+    if (settings.CLAUDE_MEM_OLLAMA_BASE_URL !== undefined) {
+      const baseUrl = String(settings.CLAUDE_MEM_OLLAMA_BASE_URL).trim();
+      try {
+        const parsedUrl = new URL(baseUrl);
+        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+          return { valid: false, error: 'CLAUDE_MEM_OLLAMA_BASE_URL must use http or https' };
+        }
+      } catch {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_BASE_URL must be a valid URL' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_MODEL
+    if (settings.CLAUDE_MEM_OLLAMA_MODEL !== undefined) {
+      const model = String(settings.CLAUDE_MEM_OLLAMA_MODEL).trim();
+      if (!model) {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_MODEL must be a non-empty model identifier' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_TIMEOUT_MS
+    if (settings.CLAUDE_MEM_OLLAMA_TIMEOUT_MS !== undefined) {
+      const timeoutMs = parseInt(String(settings.CLAUDE_MEM_OLLAMA_TIMEOUT_MS), 10);
+      if (isNaN(timeoutMs) || timeoutMs < 1000 || timeoutMs > 600000) {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_TIMEOUT_MS must be between 1000 and 600000' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_TEMPERATURE
+    if (settings.CLAUDE_MEM_OLLAMA_TEMPERATURE !== undefined) {
+      const temperature = Number(String(settings.CLAUDE_MEM_OLLAMA_TEMPERATURE));
+      if (!Number.isFinite(temperature) || temperature < 0 || temperature > 2) {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_TEMPERATURE must be between 0 and 2' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_NUM_CTX
+    if (settings.CLAUDE_MEM_OLLAMA_NUM_CTX !== undefined) {
+      const numCtx = parseInt(String(settings.CLAUDE_MEM_OLLAMA_NUM_CTX), 10);
+      if (isNaN(numCtx) || numCtx < 256 || numCtx > 1048576) {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_NUM_CTX must be between 256 and 1048576' };
+      }
+    }
+
+    // Validate CLAUDE_MEM_OLLAMA_OPTIONS_JSON
+    if (settings.CLAUDE_MEM_OLLAMA_OPTIONS_JSON !== undefined) {
+      const optionsJson = String(settings.CLAUDE_MEM_OLLAMA_OPTIONS_JSON).trim();
+      try {
+        const parsedOptions = JSON.parse(optionsJson || '{}');
+        if (!parsedOptions || typeof parsedOptions !== 'object' || Array.isArray(parsedOptions)) {
+          return { valid: false, error: 'CLAUDE_MEM_OLLAMA_OPTIONS_JSON must be a JSON object' };
+        }
+      } catch {
+        return { valid: false, error: 'CLAUDE_MEM_OLLAMA_OPTIONS_JSON must be valid JSON' };
       }
     }
 

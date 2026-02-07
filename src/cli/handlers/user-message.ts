@@ -37,10 +37,9 @@ export const userMessageHandler: EventHandler = {
     // Claude Code treating this as a hook error. The actual hook output
     // goes to stdout via hook-command.ts JSON serialization.
     process.stderr.write(
-      "\n\n" + String.fromCodePoint(0x1F4DD) + " Claude-Mem Context Loaded\n\n" +
+      "\n\n" + String.fromCodePoint(0x1F4DD) + " Codex-Mem Context Loaded\n\n" +
       output +
       "\n\n" + String.fromCodePoint(0x1F4A1) + " Wrap any message with <private> ... </private> to prevent storing sensitive information.\n" +
-      "\n" + String.fromCodePoint(0x1F4AC) + " Community https://discord.gg/J4wttp9vDu" +
       `\n` + String.fromCodePoint(0x1F4FA) + ` Watch live in browser http://localhost:${port}/\n`
     );
 

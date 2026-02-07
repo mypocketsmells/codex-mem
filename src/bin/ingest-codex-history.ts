@@ -3,29 +3,23 @@
 /**
  * Codex history ingestion CLI
  *
- * Reads ~/.codex/history.jsonl and ingests entries into codex-mem via worker HTTP API.
- * Uses session-init + observation endpoints, with checkpointing for idempotent re-runs.
+ * Reads Codex transcript files and ingests entries into codex-mem via worker HTTP API.
+ * Uses session-init + observation endpoints with per-file checkpoints for idempotent re-runs.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { basename, dirname, join, resolve } from 'path';
-import { homedir } from 'os';
-import { spawnSync } from 'child_process';
-import { SettingsDefaultsManager } from '../shared/SettingsDefaultsManager.js';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
 import { getWorkerPort } from '../shared/worker-utils.js';
+import { RetryPolicy } from '../services/ingestion/codex-history.js';
 import {
-  RetryPolicy,
-  CodexIngestionState,
-  ParsedCodexHistoryRecord,
-  buildSummaryRequests,
-  parseHistoryFileContents,
-  postJsonWithRetry,
-  selectRecordsForIngestion,
-  toContentSessionId
-} from '../services/ingestion/codex-history.js';
+  ensureWorkerAvailable,
+  getCodexIngestionStateFilePath,
+  resolveDefaultCodexHistoryPaths,
+  runCodexHistoryIngestion
+} from '../services/ingestion/CodexHistoryIngestor.js';
 
 interface CliOptions {
-  historyPath: string;
+  historyPath?: string;
   workspacePath: string;
   sinceTs?: number;
   limit?: number;
@@ -35,8 +29,6 @@ interface CliOptions {
   retryPolicy: RetryPolicy;
 }
 
-const DEFAULT_HISTORY_PATH = join(homedir(), '.codex', 'history.jsonl');
-const STATE_FILE_NAME = 'codex-history-ingest-state.json';
 const DEFAULT_RETRY_POLICY: RetryPolicy = {
   maxAttempts: 3,
   baseDelayMs: 300,
@@ -44,7 +36,6 @@ const DEFAULT_RETRY_POLICY: RetryPolicy = {
 
 function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = {
-    historyPath: DEFAULT_HISTORY_PATH,
     workspacePath: process.cwd(),
     dryRun: false,
     includeSystem: false,
@@ -122,7 +113,7 @@ function printUsage(): void {
   console.log(`Usage: codex-mem ingest [options]
 
 Options:
-  --history <path>        Path to Codex history.jsonl (default: ~/.codex/history.jsonl)
+  --history <path>        Path to one Codex input JSONL (default: all ~/.codex/sessions/**/*.jsonl, fallback ~/.codex/history.jsonl)
   --workspace <path>      Workspace path to attribute observations (default: current dir)
   --since <unix_ts>       Only ingest records with ts >= unix timestamp
   --limit <n>             Max records to ingest this run
@@ -135,210 +126,66 @@ Options:
 `);
 }
 
-function getStateFilePath(): string {
-  const dataDir = SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR');
-  return join(dataDir, STATE_FILE_NAME);
-}
-
-function loadState(stateFilePath: string): CodexIngestionState | null {
-  if (!existsSync(stateFilePath)) return null;
-  try {
-    return JSON.parse(readFileSync(stateFilePath, 'utf-8')) as CodexIngestionState;
-  } catch {
-    return null;
-  }
-}
-
-function saveState(stateFilePath: string, state: CodexIngestionState): void {
-  mkdirSync(dirname(stateFilePath), { recursive: true });
-  writeFileSync(stateFilePath, JSON.stringify(state, null, 2), 'utf-8');
-}
-
-async function isWorkerHealthy(port: number): Promise<boolean> {
-  try {
-    const response = await fetch(`http://127.0.0.1:${port}/api/health`);
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-async function ensureWorkerAvailable(port: number): Promise<void> {
-  if (await isWorkerHealthy(port)) return;
-
-  const startResult = spawnSync(
-    process.platform === 'win32' ? 'bun.exe' : 'bun',
-    ['plugin/scripts/worker-service.cjs', 'start'],
-    {
-      cwd: process.cwd(),
-      encoding: 'utf-8',
-      stdio: 'pipe'
-    }
-  );
-
-  if (startResult.status !== 0) {
-    throw new Error(`Failed to start worker: ${startResult.stderr || startResult.stdout || 'unknown error'}`);
-  }
-
-  for (let attempt = 0; attempt < 30; attempt++) {
-    if (await isWorkerHealthy(port)) return;
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-
-  throw new Error('Worker did not become healthy after startup attempt');
-}
-
-async function ingestObservationRecord(
-  record: ParsedCodexHistoryRecord,
-  workspacePath: string,
-  port: number,
-  retryPolicy: RetryPolicy
-): Promise<void> {
-  const baseUrl = `http://127.0.0.1:${port}`;
-  const contentSessionId = toContentSessionId(record.session_id);
-  const project = basename(workspacePath);
-  const promptText = record.text.trim();
-
-  if (!promptText) return;
-
-  await postJsonWithRetry(
-    `${baseUrl}/api/sessions/init`,
-    {
-      contentSessionId,
-      project,
-      prompt: promptText,
-    },
-    retryPolicy
-  );
-
-  await postJsonWithRetry(
-    `${baseUrl}/api/sessions/observations`,
-    {
-      contentSessionId,
-      tool_name: 'CodexHistoryEntry',
-      tool_input: {
-        source: 'codex-history.jsonl',
-        line_number: record.lineNumber,
-        timestamp: record.ts
-      },
-      tool_response: {
-        text: promptText
-      },
-      cwd: workspacePath
-    },
-    retryPolicy
-  );
-}
-
-async function ingestSummaries(
-  records: ParsedCodexHistoryRecord[],
-  port: number,
-  retryPolicy: RetryPolicy
-): Promise<{ attempted: number; successful: number; failedSessionIds: string[] }> {
-  const summaries = buildSummaryRequests(records);
-  const baseUrl = `http://127.0.0.1:${port}`;
-
-  let successful = 0;
-  const failedSessionIds: string[] = [];
-
-  for (const summary of summaries) {
-    try {
-      await postJsonWithRetry(
-        `${baseUrl}/api/sessions/summarize`,
-        {
-          contentSessionId: summary.contentSessionId,
-          last_assistant_message: summary.lastAssistantMessage,
-        },
-        retryPolicy
-      );
-      successful++;
-    } catch (error) {
-      failedSessionIds.push(summary.contentSessionId);
-      console.warn(
-        `[codex-mem] Summary ingestion failed for ${summary.contentSessionId}: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  return {
-    attempted: summaries.length,
-    successful,
-    failedSessionIds,
-  };
-}
-
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
+  const historyPaths = options.historyPath
+    ? [options.historyPath]
+    : resolveDefaultCodexHistoryPaths();
 
-  if (!existsSync(options.historyPath)) {
+  if (historyPaths.length === 0) {
+    throw new Error('No Codex history files were found in ~/.codex/sessions or ~/.codex/history.jsonl');
+  }
+
+  if (options.historyPath && !existsSync(options.historyPath)) {
     throw new Error(`History file not found: ${options.historyPath}`);
   }
 
-  const stateFilePath = getStateFilePath();
-  const previousState = loadState(stateFilePath);
-  const historyContents = readFileSync(options.historyPath, 'utf-8');
-  const rawRecords = parseHistoryFileContents(historyContents);
-  const selectedRecords = selectRecordsForIngestion(rawRecords, {
-    historyPath: options.historyPath,
+  const stateFilePath = getCodexIngestionStateFilePath();
+  const ingestionResult = await runCodexHistoryIngestion({
+    historyPaths,
+    workspacePath: options.workspacePath,
     includeSystem: options.includeSystem,
-    previousState,
+    skipSummaries: options.skipSummaries,
+    dryRun: options.dryRun,
+    retryPolicy: options.retryPolicy,
+    stateFilePath,
+    port: getWorkerPort(),
     sinceTs: options.sinceTs,
     limit: options.limit,
+    ensureWorkerAvailableFn: ensureWorkerAvailable
   });
 
-  console.log(`[codex-mem] Parsed ${rawRecords.length} record(s), ${selectedRecords.length} selected for ingestion`);
-  console.log(`[codex-mem] Workspace: ${options.workspacePath}`);
-  console.log(`[codex-mem] History: ${options.historyPath}`);
-  console.log(`[codex-mem] State file: ${stateFilePath}`);
+  console.log(`[codex-mem] History files scanned: ${ingestionResult.filesScanned}`);
+  console.log(`[codex-mem] History files with new records: ${ingestionResult.filesWithSelectedRecords}`);
+  console.log(`[codex-mem] Selected records: ${ingestionResult.selectedRecordCount}`);
+  console.log(`[codex-mem] State file: ${ingestionResult.stateFilePath}`);
 
-  if (selectedRecords.length === 0) {
-    console.log('[codex-mem] Nothing new to ingest');
-    return;
+  if (ingestionResult.firstSelected) {
+    console.log(`[codex-mem] First selected: ${ingestionResult.firstSelected.historyPath}:${ingestionResult.firstSelected.lineNumber}`);
+  }
+  if (ingestionResult.lastSelected) {
+    console.log(`[codex-mem] Last selected: ${ingestionResult.lastSelected.historyPath}:${ingestionResult.lastSelected.lineNumber}`);
+  }
+  if (ingestionResult.selectedRecordCount > 0) {
+    console.log(`[codex-mem] Session count in batch: ${ingestionResult.sessionCountInBatch}`);
   }
 
   if (options.dryRun) {
     console.log('[codex-mem] Dry run enabled, no records were sent');
-    console.log(`[codex-mem] First selected line: ${selectedRecords[0].lineNumber}`);
-    console.log(`[codex-mem] Last selected line: ${selectedRecords[selectedRecords.length - 1].lineNumber}`);
-    console.log(`[codex-mem] Session count in batch: ${new Set(selectedRecords.map(r => r.session_id)).size}`);
     return;
   }
 
-  const port = getWorkerPort();
-  await ensureWorkerAvailable(port);
-
-  const successfullyIngestedRecords: ParsedCodexHistoryRecord[] = [];
-  let lastProcessedLineNumber = previousState?.lastProcessedLineNumber ?? 0;
-
-  for (const record of selectedRecords) {
-    try {
-      await ingestObservationRecord(record, options.workspacePath, port, options.retryPolicy);
-      successfullyIngestedRecords.push(record);
-      lastProcessedLineNumber = record.lineNumber;
-    } catch (error) {
-      console.error(`[codex-mem] Failed at line ${record.lineNumber}: ${error instanceof Error ? error.message : String(error)}`);
-      break;
-    }
+  if (ingestionResult.stoppedAt) {
+    console.error(
+      `[codex-mem] Failed at ${ingestionResult.stoppedAt.historyPath}:${ingestionResult.stoppedAt.lineNumber}: ${ingestionResult.stoppedAt.message}`
+    );
   }
 
-  let summaryReport = { attempted: 0, successful: 0, failedSessionIds: [] as string[] };
-  if (!options.skipSummaries && successfullyIngestedRecords.length > 0) {
-    summaryReport = await ingestSummaries(successfullyIngestedRecords, port, options.retryPolicy);
-  }
-
-  if (successfullyIngestedRecords.length > 0) {
-    saveState(stateFilePath, {
-      historyPath: options.historyPath,
-      lastProcessedLineNumber,
-      updatedAt: new Date().toISOString()
-    });
-  }
-
-  console.log(`[codex-mem] Ingested ${successfullyIngestedRecords.length}/${selectedRecords.length} record(s)`);
+  console.log(`[codex-mem] Ingested ${ingestionResult.ingestedRecordCount}/${ingestionResult.selectedRecordCount} record(s)`);
   if (!options.skipSummaries) {
-    console.log(`[codex-mem] Summaries queued ${summaryReport.successful}/${summaryReport.attempted}`);
-    if (summaryReport.failedSessionIds.length > 0) {
-      console.log(`[codex-mem] Summary failures: ${summaryReport.failedSessionIds.join(', ')}`);
+    console.log(`[codex-mem] Summaries queued ${ingestionResult.summaryReport.successful}/${ingestionResult.summaryReport.attempted}`);
+    if (ingestionResult.summaryReport.failedSessionIds.length > 0) {
+      console.log(`[codex-mem] Summary failures: ${ingestionResult.summaryReport.failedSessionIds.join(', ')}`);
     }
   }
 }

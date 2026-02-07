@@ -38,7 +38,8 @@ export const sessionInitHandler: EventHandler = {
       body: JSON.stringify({
         contentSessionId: sessionId,
         project,
-        prompt
+        prompt,
+        platform: input.platform
       })
       // Note: Removed signal to avoid Windows Bun cleanup issue (libuv assertion)
     });

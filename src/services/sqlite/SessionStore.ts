@@ -819,10 +819,20 @@ export class SessionStore {
    */
   getAllProjects(): string[] {
     const stmt = this.db.prepare(`
-      SELECT DISTINCT project
-      FROM sdk_sessions
+      SELECT project
+      FROM (
+        SELECT project, started_at_epoch AS activity_epoch
+        FROM sdk_sessions
+        UNION ALL
+        SELECT project, created_at_epoch AS activity_epoch
+        FROM observations
+        UNION ALL
+        SELECT project, created_at_epoch AS activity_epoch
+        FROM session_summaries
+      ) project_activity
       WHERE project IS NOT NULL AND project != ''
-      ORDER BY project ASC
+      GROUP BY project
+      ORDER BY MAX(activity_epoch) DESC, project ASC
     `);
 
     const rows = stmt.all() as Array<{ project: string }>;

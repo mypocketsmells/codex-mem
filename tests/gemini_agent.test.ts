@@ -11,6 +11,7 @@ import { SettingsDefaultsManager } from '../src/shared/SettingsDefaultsManager';
 // Track rate limiting setting (controls Gemini RPM throttling)
 // Set to 'false' to disable rate limiting for faster tests
 let rateLimitingEnabled = 'false';
+let configuredGeminiModel = 'gemini-2.5-flash-lite';
 
 // Mock mode config
 const mockMode = {
@@ -37,6 +38,8 @@ describe('GeminiAgent', () => {
   // Mocks
   let mockStoreObservation: any;
   let mockStoreObservations: any; // Plural - atomic transaction method used by ResponseProcessor
+  let mockUpdateMemorySessionId: any;
+  let mockGetSessionById: any;
   let mockStoreSummary: any;
   let mockMarkSessionCompleted: any;
   let mockSyncObservation: any;
@@ -50,6 +53,7 @@ describe('GeminiAgent', () => {
   beforeEach(() => {
     // Reset rate limiting to disabled by default (speeds up tests)
     rateLimitingEnabled = 'false';
+    configuredGeminiModel = 'gemini-2.5-flash-lite';
 
     // Mock ModeManager using spyOn (restores properly)
     modeManagerSpy = spyOn(ModeManager, 'getInstance').mockImplementation(() => ({
@@ -61,14 +65,14 @@ describe('GeminiAgent', () => {
     loadFromFileSpy = spyOn(SettingsDefaultsManager, 'loadFromFile').mockImplementation(() => ({
       ...SettingsDefaultsManager.getAllDefaults(),
       CLAUDE_MEM_GEMINI_API_KEY: 'test-api-key',
-      CLAUDE_MEM_GEMINI_MODEL: 'gemini-2.5-flash-lite',
+      CLAUDE_MEM_GEMINI_MODEL: configuredGeminiModel,
       CLAUDE_MEM_GEMINI_RATE_LIMITING_ENABLED: rateLimitingEnabled,
       CLAUDE_MEM_DATA_DIR: '/tmp/claude-mem-test',
     }));
 
     getSpy = spyOn(SettingsDefaultsManager, 'get').mockImplementation((key: string) => {
       if (key === 'CLAUDE_MEM_GEMINI_API_KEY') return 'test-api-key';
-      if (key === 'CLAUDE_MEM_GEMINI_MODEL') return 'gemini-2.5-flash-lite';
+      if (key === 'CLAUDE_MEM_GEMINI_MODEL') return configuredGeminiModel;
       if (key === 'CLAUDE_MEM_GEMINI_RATE_LIMITING_ENABLED') return rateLimitingEnabled;
       if (key === 'CLAUDE_MEM_DATA_DIR') return '/tmp/claude-mem-test';
       return SettingsDefaultsManager.getAllDefaults()[key as keyof ReturnType<typeof SettingsDefaultsManager.getAllDefaults>] ?? '';
@@ -76,6 +80,14 @@ describe('GeminiAgent', () => {
 
     // Initialize mocks
     mockStoreObservation = mock(() => ({ id: 1, createdAtEpoch: Date.now() }));
+    mockUpdateMemorySessionId = mock(() => {});
+    mockGetSessionById = mock(() => ({
+      id: 1,
+      content_session_id: 'test-session',
+      memory_session_id: null,
+      project: 'test-project',
+      user_prompt: 'test prompt'
+    }));
     mockStoreSummary = mock(() => ({ id: 1, createdAtEpoch: Date.now() }));
     mockMarkSessionCompleted = mock(() => {});
     mockSyncObservation = mock(() => Promise.resolve());
@@ -94,6 +106,7 @@ describe('GeminiAgent', () => {
     const mockSessionStore = {
       storeObservation: mockStoreObservation,
       storeObservations: mockStoreObservations, // Required by ResponseProcessor.ts
+      updateMemorySessionId: mockUpdateMemorySessionId,
       storeSummary: mockStoreSummary,
       markSessionCompleted: mockMarkSessionCompleted
     };
@@ -105,7 +118,8 @@ describe('GeminiAgent', () => {
 
     mockDbManager = {
       getSessionStore: () => mockSessionStore,
-      getChromaSync: () => mockChromaSync
+      getChromaSync: () => mockChromaSync,
+      getSessionById: mockGetSessionById
     } as unknown as DatabaseManager;
 
     const mockPendingMessageStore = {
@@ -245,7 +259,145 @@ describe('GeminiAgent', () => {
     expect(session.cumulativeInputTokens).toBeGreaterThan(0);
   });
 
-  it('should fallback to Claude on rate limit error', async () => {
+  it('should initialize synthetic memory session id when init response is empty', async () => {
+    const session = {
+      sessionDbId: 1,
+      contentSessionId: 'test-session',
+      memorySessionId: null,
+      project: 'test-project',
+      userPrompt: 'test prompt',
+      conversationHistory: [],
+      lastPromptNumber: 1,
+      cumulativeInputTokens: 0,
+      cumulativeOutputTokens: 0,
+      pendingMessages: [],
+      abortController: new AbortController(),
+      generatorPromise: null,
+      earliestPendingTimestamp: null,
+      currentProvider: null,
+      startTime: Date.now()
+    } as any;
+
+    mockSessionManager.getMessageIterator = async function* () {
+      yield {
+        type: 'observation',
+        tool_name: 'Bash',
+        tool_input: { command: 'echo hello' },
+        tool_response: { output: 'hello', exitCode: 0 },
+        prompt_number: 1,
+        cwd: '/Users/mypocketsmells/Documents/GitHub/codex-mem'
+      };
+    } as any;
+
+    let callCount = 0;
+    global.fetch = mock(() => {
+      callCount += 1;
+      if (callCount === 1) {
+        return Promise.resolve(new Response(JSON.stringify({})));
+      }
+      return Promise.resolve(new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: '<observation><type>discovery</type><title>Recovered</title></observation>' }] } }],
+        usageMetadata: { totalTokenCount: 50 }
+      })));
+    });
+
+    await agent.startSession(session);
+
+    expect(mockUpdateMemorySessionId).toHaveBeenCalledWith(1, 'gemini-worker-test-session');
+    expect(mockStoreObservations).toHaveBeenCalled();
+  });
+
+  it('should reuse persisted memory session id when in-memory session starts empty', async () => {
+    const session = {
+      sessionDbId: 1,
+      contentSessionId: 'test-session',
+      memorySessionId: null,
+      project: 'test-project',
+      userPrompt: 'test prompt',
+      conversationHistory: [],
+      lastPromptNumber: 1,
+      cumulativeInputTokens: 0,
+      cumulativeOutputTokens: 0,
+      pendingMessages: [],
+      abortController: new AbortController(),
+      generatorPromise: null,
+      earliestPendingTimestamp: null,
+      currentProvider: null,
+      startTime: Date.now()
+    } as any;
+
+    mockGetSessionById.mockImplementation(() => ({
+      id: 1,
+      content_session_id: 'test-session',
+      memory_session_id: 'persisted-memory-session',
+      project: 'test-project',
+      user_prompt: 'test prompt'
+    }));
+
+    global.fetch = mock(() => Promise.resolve(new Response(JSON.stringify({
+      candidates: [{ content: { parts: [{ text: '<observation><type>discovery</type><title>Reuse persisted ID</title></observation>' }] } }],
+      usageMetadata: { totalTokenCount: 20 }
+    }))));
+
+    await agent.startSession(session);
+
+    expect(session.memorySessionId).toBe('persisted-memory-session');
+    expect(mockUpdateMemorySessionId).not.toHaveBeenCalled();
+    expect(mockStoreObservations).toHaveBeenCalled();
+  });
+
+  it('should store fallback observation when Gemini returns empty observation content', async () => {
+    const session = {
+      sessionDbId: 1,
+      contentSessionId: 'test-session',
+      memorySessionId: 'gemini-worker-test-session',
+      project: 'test-project',
+      userPrompt: 'test prompt',
+      conversationHistory: [],
+      lastPromptNumber: 1,
+      cumulativeInputTokens: 0,
+      cumulativeOutputTokens: 0,
+      pendingMessages: [],
+      abortController: new AbortController(),
+      generatorPromise: null,
+      earliestPendingTimestamp: null,
+      currentProvider: null,
+      startTime: Date.now()
+    } as any;
+
+    mockSessionManager.getMessageIterator = async function* () {
+      yield {
+        type: 'observation',
+        tool_name: 'Bash',
+        tool_input: { command: 'echo hello' },
+        tool_response: { output: 'hello', exitCode: 0 },
+        prompt_number: 1,
+        cwd: '/Users/mypocketsmells/Documents/GitHub/codex-mem'
+      };
+    } as any;
+
+    let callCount = 0;
+    global.fetch = mock(() => {
+      callCount += 1;
+      if (callCount === 1) {
+        return Promise.resolve(new Response(JSON.stringify({
+          candidates: [{ content: { parts: [{ text: 'init ok' }] } }],
+          usageMetadata: { totalTokenCount: 10 }
+        })));
+      }
+      return Promise.resolve(new Response(JSON.stringify({})));
+    });
+
+    await agent.startSession(session);
+
+    expect(mockStoreObservations).toHaveBeenCalled();
+    const lastCall = (mockStoreObservations as any).mock.calls[(mockStoreObservations as any).mock.calls.length - 1];
+    const storedObservations = lastCall[2];
+    expect(storedObservations.length).toBe(1);
+    expect(storedObservations[0].title).toContain('Tool execution captured: Bash');
+  });
+
+  it('should fallback to configured provider on rate limit error', async () => {
     const session = {
       sessionDbId: 1,
       contentSessionId: 'test-session',
@@ -273,9 +425,40 @@ describe('GeminiAgent', () => {
 
     await agent.startSession(session);
 
-    // Verify fallback to Claude was triggered
+    // Verify fallback to configured provider was triggered
     expect(fallbackAgent.startSession).toHaveBeenCalledWith(session, undefined);
     // Note: resetStuckMessages is called by worker-service.ts, not by GeminiAgent
+  });
+
+  it('should fallback to configured provider when init response is empty', async () => {
+    const session = {
+      sessionDbId: 1,
+      contentSessionId: 'test-session',
+      memorySessionId: 'mem-session-123',
+      project: 'test-project',
+      userPrompt: 'test prompt',
+      conversationHistory: [],
+      lastPromptNumber: 1,
+      cumulativeInputTokens: 0,
+      cumulativeOutputTokens: 0,
+      pendingMessages: [],
+      abortController: new AbortController(),
+      generatorPromise: null,
+      earliestPendingTimestamp: null,
+      currentProvider: null,
+      startTime: Date.now()
+    } as any;
+
+    global.fetch = mock(() => Promise.resolve(new Response(JSON.stringify({}))));
+
+    const fallbackAgent = {
+      startSession: mock(() => Promise.resolve())
+    };
+    agent.setFallbackAgent(fallbackAgent);
+
+    await agent.startSession(session);
+
+    expect(fallbackAgent.startSession).toHaveBeenCalledWith(session, undefined);
   });
 
   it('should NOT fallback on other errors', async () => {
@@ -306,6 +489,90 @@ describe('GeminiAgent', () => {
 
     await expect(agent.startSession(session)).rejects.toThrow('Gemini API error: 400 - Invalid argument');
     expect(fallbackAgent.startSession).not.toHaveBeenCalled();
+  });
+
+  it('should retry with gemini-2.5-flash when gemini-3-flash is rejected', async () => {
+    configuredGeminiModel = 'gemini-3-flash';
+
+    const session = {
+      sessionDbId: 1,
+      contentSessionId: 'test-session',
+      memorySessionId: 'mem-session-123',
+      project: 'test-project',
+      userPrompt: 'test prompt',
+      conversationHistory: [],
+      lastPromptNumber: 1,
+      cumulativeInputTokens: 0,
+      cumulativeOutputTokens: 0,
+      pendingMessages: [],
+      abortController: new AbortController(),
+      generatorPromise: null,
+      earliestPendingTimestamp: null,
+      currentProvider: null,
+      startTime: Date.now()
+    } as any;
+
+    let callCount = 0;
+    global.fetch = mock(() => {
+      callCount += 1;
+      if (callCount === 1) {
+        return Promise.resolve(new Response('Invalid argument', { status: 400 }));
+      }
+      return Promise.resolve(new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: '<observation><type>discovery</type><title>Recovered</title></observation>' }] } }],
+        usageMetadata: { totalTokenCount: 50 }
+      })));
+    });
+
+    await agent.startSession(session);
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const firstRequestUrl = (global.fetch as any).mock.calls[0][0];
+    const secondRequestUrl = (global.fetch as any).mock.calls[1][0];
+    expect(firstRequestUrl).toContain('/gemini-3-flash:generateContent');
+    expect(secondRequestUrl).toContain('/gemini-2.5-flash:generateContent');
+  });
+
+  it('should retry with gemini-2.5-flash when gemini-3-flash is unavailable', async () => {
+    configuredGeminiModel = 'gemini-3-flash';
+
+    const session = {
+      sessionDbId: 1,
+      contentSessionId: 'test-session',
+      memorySessionId: 'mem-session-123',
+      project: 'test-project',
+      userPrompt: 'test prompt',
+      conversationHistory: [],
+      lastPromptNumber: 1,
+      cumulativeInputTokens: 0,
+      cumulativeOutputTokens: 0,
+      pendingMessages: [],
+      abortController: new AbortController(),
+      generatorPromise: null,
+      earliestPendingTimestamp: null,
+      currentProvider: null,
+      startTime: Date.now()
+    } as any;
+
+    let callCount = 0;
+    global.fetch = mock(() => {
+      callCount += 1;
+      if (callCount === 1) {
+        return Promise.resolve(new Response('Not Found', { status: 404 }));
+      }
+      return Promise.resolve(new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: '<observation><type>discovery</type><title>Recovered</title></observation>' }] } }],
+        usageMetadata: { totalTokenCount: 50 }
+      })));
+    });
+
+    await agent.startSession(session);
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const firstRequestUrl = (global.fetch as any).mock.calls[0][0];
+    const secondRequestUrl = (global.fetch as any).mock.calls[1][0];
+    expect(firstRequestUrl).toContain('/gemini-3-flash:generateContent');
+    expect(secondRequestUrl).toContain('/gemini-2.5-flash:generateContent');
   });
 
   it('should respect rate limits when rate limiting enabled', async () => {

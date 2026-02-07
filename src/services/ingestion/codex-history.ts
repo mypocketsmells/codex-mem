@@ -1,3 +1,5 @@
+import { basename } from 'path';
+
 export interface CodexHistoryRecord {
   session_id: string;
   ts: number;
@@ -6,6 +8,7 @@ export interface CodexHistoryRecord {
 
 export interface ParsedCodexHistoryRecord extends CodexHistoryRecord {
   lineNumber: number;
+  workspacePath?: string;
 }
 
 export interface CodexIngestionState {
@@ -46,30 +49,188 @@ export function isSystemRecord(text: string): boolean {
   );
 }
 
+interface CodexSessionMetaLine {
+  timestamp?: string;
+  type?: string;
+  payload?: {
+    id?: string;
+    cwd?: string;
+  };
+}
+
+interface CodexSessionEventLine {
+  timestamp?: string;
+  type?: string;
+  payload?: {
+    type?: string;
+    message?: string;
+  };
+}
+
+interface CodexResponseItemOutputText {
+  type?: string;
+  text?: string;
+}
+
+interface CodexResponseItemLine {
+  type?: string;
+  payload?: {
+    type?: string;
+    role?: string;
+    phase?: string;
+    content?: CodexResponseItemOutputText[];
+  };
+}
+
+function parseTimestampToUnixSeconds(timestamp: string | undefined): number {
+  if (!timestamp) return 0;
+  const millis = Date.parse(timestamp);
+  if (!Number.isFinite(millis)) return 0;
+  return Math.floor(millis / 1000);
+}
+
 export function parseHistoryFileContents(content: string): ParsedCodexHistoryRecord[] {
   const lines = content.split('\n');
   const parsedRecords: ParsedCodexHistoryRecord[] = [];
+  let currentSessionId: string | null = null;
+  let currentWorkspacePath: string | undefined;
 
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index].trim();
     if (!line) continue;
 
     try {
-      const parsedJson = JSON.parse(line) as Partial<CodexHistoryRecord>;
-      if (parsedJson.session_id === undefined || parsedJson.text === undefined || parsedJson.ts === undefined) continue;
+      const parsedJson = JSON.parse(line) as Partial<CodexHistoryRecord> & CodexSessionMetaLine & CodexSessionEventLine;
 
-      parsedRecords.push({
-        session_id: String(parsedJson.session_id),
-        text: String(parsedJson.text),
-        ts: Number(parsedJson.ts),
-        lineNumber: index + 1
-      });
+      // Legacy Codex history.jsonl format
+      if (parsedJson.session_id !== undefined && parsedJson.text !== undefined && parsedJson.ts !== undefined) {
+        parsedRecords.push({
+          session_id: String(parsedJson.session_id),
+          text: String(parsedJson.text),
+          ts: Number(parsedJson.ts),
+          lineNumber: index + 1
+        });
+        continue;
+      }
+
+      // New Codex session transcript format:
+      // 1) session_meta line with session id
+      if (
+        parsedJson.type === 'session_meta' &&
+        parsedJson.payload &&
+        typeof parsedJson.payload.id === 'string' &&
+        parsedJson.payload.id.trim().length > 0
+      ) {
+        currentSessionId = parsedJson.payload.id.trim();
+        currentWorkspacePath =
+          typeof parsedJson.payload.cwd === 'string' && parsedJson.payload.cwd.trim().length > 0
+            ? parsedJson.payload.cwd.trim()
+            : undefined;
+        continue;
+      }
+
+      // 2) event_msg line for user messages
+      if (
+        parsedJson.type === 'event_msg' &&
+        parsedJson.payload &&
+        parsedJson.payload.type === 'user_message' &&
+        typeof parsedJson.payload.message === 'string' &&
+        currentSessionId
+      ) {
+        const messageText = parsedJson.payload.message.trim();
+        if (!messageText) continue;
+
+        const parsedRecord: ParsedCodexHistoryRecord = {
+          session_id: currentSessionId,
+          text: messageText,
+          ts: parseTimestampToUnixSeconds(parsedJson.timestamp),
+          lineNumber: index + 1
+        };
+        if (currentWorkspacePath) {
+          parsedRecord.workspacePath = currentWorkspacePath;
+        }
+
+        parsedRecords.push(parsedRecord);
+      }
     } catch {
       // Skip malformed lines for ingestion robustness.
     }
   }
 
   return parsedRecords;
+}
+
+export function parseLastAssistantMessagesFromTranscript(content: string): Map<string, string> {
+  const lines = content.split('\n');
+  const lastAssistantMessageBySession = new Map<string, string>();
+  const lastFinalAssistantMessageBySession = new Map<string, string>();
+  let currentSessionId: string | null = null;
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index].trim();
+    if (!line) continue;
+
+    try {
+      const parsedJson = JSON.parse(line) as CodexSessionMetaLine & CodexSessionEventLine & CodexResponseItemLine;
+
+      if (
+        parsedJson.type === 'session_meta' &&
+        parsedJson.payload &&
+        typeof parsedJson.payload.id === 'string' &&
+        parsedJson.payload.id.trim().length > 0
+      ) {
+        currentSessionId = parsedJson.payload.id.trim();
+        continue;
+      }
+
+      if (
+        parsedJson.type === 'event_msg' &&
+        parsedJson.payload &&
+        parsedJson.payload.type === 'agent_message' &&
+        typeof parsedJson.payload.message === 'string' &&
+        currentSessionId
+      ) {
+        const assistantMessage = parsedJson.payload.message.trim();
+        if (!assistantMessage) continue;
+        lastAssistantMessageBySession.set(currentSessionId, assistantMessage);
+      }
+
+      if (
+        parsedJson.type === 'response_item' &&
+        parsedJson.payload &&
+        parsedJson.payload.type === 'message' &&
+        parsedJson.payload.role === 'assistant' &&
+        Array.isArray(parsedJson.payload.content) &&
+        currentSessionId
+      ) {
+        const responseItemMessage = parsedJson.payload.content
+          .map(contentItem => {
+            if (!contentItem || contentItem.type !== 'output_text') return '';
+            if (typeof contentItem.text !== 'string') return '';
+            return contentItem.text.trim();
+          })
+          .filter(Boolean)
+          .join('\n')
+          .trim();
+
+        if (!responseItemMessage) continue;
+        lastAssistantMessageBySession.set(currentSessionId, responseItemMessage);
+
+        if (parsedJson.payload.phase === 'final_answer') {
+          lastFinalAssistantMessageBySession.set(currentSessionId, responseItemMessage);
+        }
+      }
+    } catch {
+      // Skip malformed lines for ingestion robustness.
+    }
+  }
+
+  // Prefer substantive final answers over commentary/status updates when both exist.
+  for (const [sessionId, finalAnswerMessage] of lastFinalAssistantMessageBySession.entries()) {
+    lastAssistantMessageBySession.set(sessionId, finalAnswerMessage);
+  }
+
+  return lastAssistantMessageBySession;
 }
 
 export function selectRecordsForIngestion(
@@ -108,7 +269,25 @@ export function toContentSessionId(sessionId: string): string {
   return `codex-${sessionId}`;
 }
 
-export function buildSummaryRequests(records: ParsedCodexHistoryRecord[]): CodexSummaryRequest[] {
+export function resolveWorkspacePathForRecord(
+  record: ParsedCodexHistoryRecord,
+  fallbackWorkspacePath: string
+): string {
+  const recordWorkspacePath = record.workspacePath?.trim();
+  if (recordWorkspacePath) {
+    return recordWorkspacePath;
+  }
+  return fallbackWorkspacePath;
+}
+
+export function workspacePathToProjectName(workspacePath: string): string {
+  return basename(workspacePath);
+}
+
+export function buildSummaryRequests(
+  records: ParsedCodexHistoryRecord[],
+  lastAssistantMessageBySession: ReadonlyMap<string, string> = new Map()
+): CodexSummaryRequest[] {
   const lastRecordBySession = new Map<string, ParsedCodexHistoryRecord>();
 
   for (const record of records) {
@@ -118,10 +297,15 @@ export function buildSummaryRequests(records: ParsedCodexHistoryRecord[]): Codex
 
   return Array.from(lastRecordBySession.values())
     .sort((left, right) => left.ts - right.ts)
-    .map(record => ({
-      contentSessionId: toContentSessionId(record.session_id),
-      lastAssistantMessage: record.text.trim(),
-    }));
+    .map(record => {
+      const fallbackMessage = record.text.trim();
+      const parsedAssistantMessage = lastAssistantMessageBySession.get(record.session_id)?.trim() || '';
+
+      return {
+        contentSessionId: toContentSessionId(record.session_id),
+        lastAssistantMessage: parsedAssistantMessage || fallbackMessage,
+      };
+    });
 }
 
 export function shouldRetryStatus(statusCode: number): boolean {

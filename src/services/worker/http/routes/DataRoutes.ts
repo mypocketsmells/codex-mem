@@ -9,7 +9,8 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import { readFileSync, statSync, existsSync } from 'fs';
 import { logger } from '../../../../utils/logger.js';
-import { getPackageRoot, DB_PATH } from '../../../../shared/paths.js';
+import { getPackageRoot, DB_PATH, USER_SETTINGS_PATH } from '../../../../shared/paths.js';
+import { SettingsDefaultsManager } from '../../../../shared/SettingsDefaultsManager.js';
 import { getWorkerPort } from '../../../../shared/worker-utils.js';
 import { PaginationHelper } from '../../PaginationHelper.js';
 import { DatabaseManager } from '../../DatabaseManager.js';
@@ -17,6 +18,8 @@ import { SessionManager } from '../../SessionManager.js';
 import { SSEBroadcaster } from '../../SSEBroadcaster.js';
 import type { WorkerService } from '../../../worker-service.js';
 import { BaseRouteHandler } from '../BaseRouteHandler.js';
+import { listInstalledOllamaModels } from '../../OllamaModelDiscovery.js';
+import { discoverCodexSessionProjects } from '../../../ingestion/CodexHistoryIngestor.js';
 
 export class DataRoutes extends BaseRouteHandler {
   constructor(
@@ -46,6 +49,8 @@ export class DataRoutes extends BaseRouteHandler {
     // Metadata endpoints
     app.get('/api/stats', this.handleGetStats.bind(this));
     app.get('/api/projects', this.handleGetProjects.bind(this));
+    app.get('/api/projects/diagnostics', this.handleGetProjectsDiagnostics.bind(this));
+    app.get('/api/ollama/models', this.handleGetOllamaModels.bind(this));
 
     // Processing status endpoints
     app.get('/api/processing-status', this.handleGetProcessingStatus.bind(this));
@@ -245,19 +250,59 @@ export class DataRoutes extends BaseRouteHandler {
    * GET /api/projects
    */
   private handleGetProjects = this.wrapHandler((req: Request, res: Response): void => {
-    const db = this.dbManager.getSessionStore().db;
-
-    const rows = db.prepare(`
-      SELECT DISTINCT project
-      FROM observations
-      WHERE project IS NOT NULL
-      GROUP BY project
-      ORDER BY MAX(created_at_epoch) DESC
-    `).all() as Array<{ project: string }>;
-
-    const projects = rows.map(row => row.project);
+    const projects = this.dbManager.getSessionStore().getAllProjects();
 
     res.json({ projects });
+  });
+
+  /**
+   * Get diagnostics comparing ingested projects vs discovered Codex transcript projects.
+   * GET /api/projects/diagnostics
+   */
+  private handleGetProjectsDiagnostics = this.wrapHandler((req: Request, res: Response): void => {
+    const ingestedProjects = this.dbManager.getSessionStore().getAllProjects();
+    const discovery = discoverCodexSessionProjects();
+    const ingestedProjectsSet = new Set(ingestedProjects);
+    const missingProjects = discovery.discoveredSessionProjects
+      .filter(projectName => !ingestedProjectsSet.has(projectName))
+      .sort((leftProject, rightProject) => leftProject.localeCompare(rightProject));
+
+    res.json({
+      ingestedProjects,
+      discoveredSessionProjects: discovery.discoveredSessionProjects,
+      missingProjects,
+      missingCount: missingProjects.length,
+      scannedFiles: discovery.scannedFiles,
+      lastScanEpochMs: discovery.lastScanEpochMs
+    });
+  });
+
+  /**
+   * Get list of installed Ollama models.
+   * Attempts API discovery first, then CLI fallback.
+   * GET /api/ollama/models?baseUrl=http://127.0.0.1:11434
+   */
+  private handleGetOllamaModels = this.wrapHandler(async (req: Request, res: Response): Promise<void> => {
+    const configuredSettings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
+    const requestedBaseUrl = typeof req.query.baseUrl === 'string' && req.query.baseUrl.trim()
+      ? req.query.baseUrl.trim()
+      : configuredSettings.CLAUDE_MEM_OLLAMA_BASE_URL;
+
+    let parsedBaseUrl: URL;
+    try {
+      parsedBaseUrl = new URL(requestedBaseUrl);
+    } catch {
+      this.badRequest(res, 'baseUrl must be a valid URL');
+      return;
+    }
+
+    if (parsedBaseUrl.protocol !== 'http:' && parsedBaseUrl.protocol !== 'https:') {
+      this.badRequest(res, 'baseUrl must use http or https');
+      return;
+    }
+
+    const modelDiscovery = await listInstalledOllamaModels(requestedBaseUrl);
+    res.json(modelDiscovery);
   });
 
   /**
@@ -267,7 +312,9 @@ export class DataRoutes extends BaseRouteHandler {
   private handleGetProcessingStatus = this.wrapHandler((req: Request, res: Response): void => {
     const isProcessing = this.sessionManager.isAnySessionProcessing();
     const queueDepth = this.sessionManager.getTotalActiveWork(); // Includes queued + actively processing
-    res.json({ isProcessing, queueDepth });
+    const oldestPendingAgeMs = this.sessionManager.getOldestActiveWorkAgeMs();
+    const activeProviders = this.sessionManager.getActiveProviders();
+    res.json({ isProcessing, queueDepth, oldestPendingAgeMs, activeProviders });
   });
 
   /**
@@ -281,8 +328,10 @@ export class DataRoutes extends BaseRouteHandler {
     const isProcessing = this.sessionManager.isAnySessionProcessing();
     const queueDepth = this.sessionManager.getTotalQueueDepth();
     const activeSessions = this.sessionManager.getActiveSessionCount();
+    const oldestPendingAgeMs = this.sessionManager.getOldestActiveWorkAgeMs();
+    const activeProviders = this.sessionManager.getActiveProviders();
 
-    res.json({ status: 'ok', isProcessing, queueDepth, activeSessions });
+    res.json({ status: 'ok', isProcessing, queueDepth, activeSessions, oldestPendingAgeMs, activeProviders });
   });
 
   /**

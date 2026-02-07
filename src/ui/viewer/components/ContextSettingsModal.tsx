@@ -12,6 +12,14 @@ interface ContextSettingsModalProps {
   saveStatus: string;
 }
 
+type OllamaModelSource = 'api' | 'cli' | 'none';
+
+interface OllamaModelsResponse {
+  models: string[];
+  source: OllamaModelSource;
+  error?: string;
+}
+
 // Collapsible section component
 function CollapsibleSection({
   title,
@@ -185,11 +193,50 @@ export function ContextSettingsModal({
   saveStatus
 }: ContextSettingsModalProps) {
   const [formState, setFormState] = useState<Settings>(settings);
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
+  const [ollamaModelSource, setOllamaModelSource] = useState<OllamaModelSource | null>(null);
+  const [ollamaModelsLoading, setOllamaModelsLoading] = useState(false);
+  const [ollamaModelsError, setOllamaModelsError] = useState<string | null>(null);
 
   // Update form state when settings prop changes
   useEffect(() => {
     setFormState(settings);
   }, [settings]);
+
+  useEffect(() => {
+    if (!isOpen || formState.CLAUDE_MEM_PROVIDER !== 'ollama') {
+      return;
+    }
+
+    const baseUrl = (formState.CLAUDE_MEM_OLLAMA_BASE_URL || 'http://127.0.0.1:11434').trim();
+    const fetchInstalledModels = async (): Promise<void> => {
+      setOllamaModelsLoading(true);
+      setOllamaModelsError(null);
+
+      try {
+        const response = await fetch(`/api/ollama/models?baseUrl=${encodeURIComponent(baseUrl)}`);
+        const data = await response.json() as OllamaModelsResponse;
+        if (!response.ok) {
+          throw new Error((data as any)?.error || 'Failed to load Ollama models');
+        }
+
+        setOllamaModels(data.models || []);
+        setOllamaModelSource(data.source || 'none');
+        if (data.error) {
+          setOllamaModelsError(data.error);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setOllamaModels([]);
+        setOllamaModelSource('none');
+        setOllamaModelsError(message);
+      } finally {
+        setOllamaModelsLoading(false);
+      }
+    };
+
+    void fetchInstalledModels();
+  }, [isOpen, formState.CLAUDE_MEM_PROVIDER, formState.CLAUDE_MEM_OLLAMA_BASE_URL]);
 
   // Get context preview based on current form state
   const { preview, isLoading, error, projects, selectedProject, setSelectedProject } = useContextPreview(formState);
@@ -414,30 +461,63 @@ export function ContextSettingsModal({
             >
               <FormField
                 label="AI Provider"
-                tooltip="Choose between Claude (via Agent SDK) or Gemini (via REST API)"
+                tooltip="Choose Codex CLI, API-key providers, or local Ollama"
               >
                 <select
-                  value={formState.CLAUDE_MEM_PROVIDER || 'claude'}
+                  value={formState.CLAUDE_MEM_PROVIDER || 'codex'}
                   onChange={(e) => updateSetting('CLAUDE_MEM_PROVIDER', e.target.value)}
                 >
-                  <option value="claude">Claude (uses your Claude account)</option>
+                  <option value="codex">Codex CLI (uses your Codex login)</option>
                   <option value="gemini">Gemini (uses API key)</option>
                   <option value="openrouter">OpenRouter (multi-model)</option>
+                  <option value="ollama">Ollama (local models)</option>
                 </select>
               </FormField>
 
-              {formState.CLAUDE_MEM_PROVIDER === 'claude' && (
+              {(formState.CLAUDE_MEM_PROVIDER === 'gemini' || formState.CLAUDE_MEM_PROVIDER === 'openrouter') && (
                 <FormField
-                  label="Claude Model"
-                  tooltip="Claude model used for generating observations"
+                  label="Fallback Behavior"
+                  tooltip="How to recover when provider API calls fail (rate limits/network/server errors)"
                 >
                   <select
-                    value={formState.CLAUDE_MEM_MODEL || 'haiku'}
-                    onChange={(e) => updateSetting('CLAUDE_MEM_MODEL', e.target.value)}
+                    value={formState.CLAUDE_MEM_PROVIDER_FALLBACK_POLICY || 'auto'}
+                    onChange={(e) => updateSetting('CLAUDE_MEM_PROVIDER_FALLBACK_POLICY', e.target.value)}
                   >
-                    <option value="haiku">haiku (fastest)</option>
-                    <option value="sonnet">sonnet (balanced)</option>
-                    <option value="opus">opus (highest quality)</option>
+                    <option value="auto">auto (prefer Codex, then SDK)</option>
+                    <option value="off">off (no fallback)</option>
+                    <option value="codex">codex only</option>
+                    <option value="sdk">sdk only</option>
+                  </select>
+                </FormField>
+              )}
+
+              {formState.CLAUDE_MEM_PROVIDER === 'codex' && (
+                <FormField
+                  label="Codex Model"
+                  tooltip="Model passed to `codex exec` (for example: gpt-5)"
+                >
+                  <input
+                    type="text"
+                    value={formState.CLAUDE_MEM_CODEX_MODEL || 'gpt-5'}
+                    onChange={(e) => updateSetting('CLAUDE_MEM_CODEX_MODEL', e.target.value)}
+                    placeholder="gpt-5"
+                  />
+                </FormField>
+              )}
+
+              {formState.CLAUDE_MEM_PROVIDER === 'codex' && (
+                <FormField
+                  label="Codex Reasoning"
+                  tooltip="Reasoning effort for Codex CLI calls"
+                >
+                  <select
+                    value={formState.CLAUDE_MEM_CODEX_REASONING_EFFORT || 'high'}
+                    onChange={(e) => updateSetting('CLAUDE_MEM_CODEX_REASONING_EFFORT', e.target.value)}
+                  >
+                    <option value="minimal">minimal</option>
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high</option>
                   </select>
                 </FormField>
               )}
@@ -524,6 +604,118 @@ export function ContextSettingsModal({
                       value={formState.CLAUDE_MEM_OPENROUTER_APP_NAME || 'codex-mem'}
                       onChange={(e) => updateSetting('CLAUDE_MEM_OPENROUTER_APP_NAME', e.target.value)}
                       placeholder="codex-mem"
+                    />
+                  </FormField>
+                </>
+              )}
+
+              {formState.CLAUDE_MEM_PROVIDER === 'ollama' && (
+                <>
+                  <FormField
+                    label="Ollama Mode"
+                    tooltip="Use native Ollama HTTP API or Codex OSS bridge with local provider"
+                  >
+                    <select
+                      value={formState.CLAUDE_MEM_OLLAMA_MODE || 'native'}
+                      onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_MODE', e.target.value)}
+                    >
+                      <option value="native">native (direct /api/chat)</option>
+                      <option value="codex_bridge">codex_bridge (--oss --local-provider ollama)</option>
+                    </select>
+                  </FormField>
+
+                  <FormField
+                    label="Ollama Base URL"
+                    tooltip="Base URL for Ollama API and model discovery"
+                  >
+                    <input
+                      type="text"
+                      value={formState.CLAUDE_MEM_OLLAMA_BASE_URL || 'http://127.0.0.1:11434'}
+                      onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_BASE_URL', e.target.value)}
+                      placeholder="http://127.0.0.1:11434"
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Ollama Model"
+                    tooltip="Select an installed model or type a custom model tag"
+                  >
+                    <>
+                      <input
+                        type="text"
+                        list="ollama-model-options"
+                        value={formState.CLAUDE_MEM_OLLAMA_MODEL || 'gemma3:4b'}
+                        onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_MODEL', e.target.value)}
+                        placeholder="gemma3:4b"
+                      />
+                      <datalist id="ollama-model-options">
+                        {ollamaModels.map((modelName) => (
+                          <option key={modelName} value={modelName} />
+                        ))}
+                      </datalist>
+                      <div style={{ marginTop: '6px', fontSize: '12px', opacity: 0.75 }}>
+                        {ollamaModelsLoading && 'Loading installed models...'}
+                        {!ollamaModelsLoading && ollamaModelSource === 'api' && `Loaded ${ollamaModels.length} models from Ollama API`}
+                        {!ollamaModelsLoading && ollamaModelSource === 'cli' && `Loaded ${ollamaModels.length} models via ollama list fallback`}
+                        {!ollamaModelsLoading && ollamaModelSource === 'none' && 'No installed models discovered'}
+                      </div>
+                      {ollamaModelsError && (
+                        <div style={{ marginTop: '4px', fontSize: '12px', color: '#ff6b6b' }}>
+                          {ollamaModelsError}
+                        </div>
+                      )}
+                    </>
+                  </FormField>
+
+                  <FormField
+                    label="Ollama Timeout (ms)"
+                    tooltip="Timeout for Ollama generation requests"
+                  >
+                    <input
+                      type="number"
+                      min="1000"
+                      max="600000"
+                      value={formState.CLAUDE_MEM_OLLAMA_TIMEOUT_MS || '120000'}
+                      onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_TIMEOUT_MS', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Ollama Temperature"
+                    tooltip="Sampling temperature (0-2)"
+                  >
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="2"
+                      value={formState.CLAUDE_MEM_OLLAMA_TEMPERATURE || '0.2'}
+                      onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_TEMPERATURE', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Ollama num_ctx"
+                    tooltip="Context window override passed in options (256-1048576)"
+                  >
+                    <input
+                      type="number"
+                      min="256"
+                      max="1048576"
+                      value={formState.CLAUDE_MEM_OLLAMA_NUM_CTX || '8192'}
+                      onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_NUM_CTX', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Ollama Options JSON"
+                    tooltip="Additional Ollama options object merged into request options"
+                  >
+                    <input
+                      type="text"
+                      value={formState.CLAUDE_MEM_OLLAMA_OPTIONS_JSON || '{}'}
+                      onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_OPTIONS_JSON', e.target.value)}
+                      placeholder='{"top_p":0.9}'
                     />
                   </FormField>
                 </>

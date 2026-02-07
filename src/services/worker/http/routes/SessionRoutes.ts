@@ -12,8 +12,10 @@ import { stripMemoryTagsFromJson, stripMemoryTagsFromPrompt } from '../../../../
 import { SessionManager } from '../../SessionManager.js';
 import { DatabaseManager } from '../../DatabaseManager.js';
 import { SDKAgent } from '../../SDKAgent.js';
+import { CodexAgent, isCodexAvailable, isCodexSelected } from '../../CodexAgent.js';
 import { GeminiAgent, isGeminiSelected, isGeminiAvailable } from '../../GeminiAgent.js';
 import { OpenRouterAgent, isOpenRouterSelected, isOpenRouterAvailable } from '../../OpenRouterAgent.js';
+import { OllamaAgent, getConfiguredOllamaMode, isOllamaAvailable, isOllamaSelected } from '../../OllamaAgent.js';
 import type { WorkerService } from '../../../worker-service.js';
 import { BaseRouteHandler } from '../BaseRouteHandler.js';
 import { SessionEventBroadcaster } from '../../events/SessionEventBroadcaster.js';
@@ -29,8 +31,10 @@ export class SessionRoutes extends BaseRouteHandler {
     private sessionManager: SessionManager,
     private dbManager: DatabaseManager,
     private sdkAgent: SDKAgent,
+    private codexAgent: CodexAgent,
     private geminiAgent: GeminiAgent,
     private openRouterAgent: OpenRouterAgent,
+    private ollamaAgent: OllamaAgent,
     private eventBroadcaster: SessionEventBroadcaster,
     private workerService: WorkerService
   ) {
@@ -48,7 +52,15 @@ export class SessionRoutes extends BaseRouteHandler {
    * Note: Session linking via contentSessionId allows provider switching mid-session.
    * The conversationHistory on ActiveSession maintains context across providers.
    */
-  private getActiveAgent(): SDKAgent | GeminiAgent | OpenRouterAgent {
+  private getActiveAgent(): SDKAgent | CodexAgent | GeminiAgent | OpenRouterAgent | OllamaAgent {
+    if (isCodexSelected()) {
+      if (isCodexAvailable()) {
+        logger.debug('SESSION', 'Using Codex CLI agent');
+        return this.codexAgent;
+      } else {
+        throw new Error('Codex provider selected but codex CLI is unavailable. Install Codex CLI and ensure `codex --version` succeeds.');
+      }
+    }
     if (isOpenRouterSelected()) {
       if (isOpenRouterAvailable()) {
         logger.debug('SESSION', 'Using OpenRouter agent');
@@ -65,17 +77,123 @@ export class SessionRoutes extends BaseRouteHandler {
         throw new Error('Gemini provider selected but no API key configured. Set CODEX_MEM_GEMINI_API_KEY (or CLAUDE_MEM_GEMINI_API_KEY) in settings, or GEMINI_API_KEY environment variable.');
       }
     }
+    if (isOllamaSelected()) {
+      const ollamaMode = getConfiguredOllamaMode();
+      if (ollamaMode === 'codex_bridge') {
+        if (isCodexAvailable()) {
+          logger.debug('SESSION', 'Using Codex CLI agent in Ollama bridge mode');
+          return this.codexAgent;
+        }
+        throw new Error('Ollama provider selected in codex_bridge mode but codex CLI is unavailable. Install Codex CLI and ensure `codex --version` succeeds.');
+      }
+
+      if (isOllamaAvailable()) {
+        logger.debug('SESSION', 'Using Ollama native agent');
+        return this.ollamaAgent;
+      }
+      throw new Error('Ollama provider selected but unavailable. Ensure CLAUDE_MEM_OLLAMA_BASE_URL and CLAUDE_MEM_OLLAMA_MODEL are configured, and Ollama is running.');
+    }
+
+    // Migrate legacy provider setting transparently:
+    // Older settings files may still have CLAUDE_MEM_PROVIDER=claude.
+    // When Codex CLI is available, use Codex by default for codex-mem behavior.
+    if (this.isLegacyClaudeProviderSelected() && isCodexAvailable()) {
+      logger.info('SESSION', 'Using Codex CLI agent for legacy provider setting', {
+        legacyProvider: 'claude'
+      });
+      return this.codexAgent;
+    }
+
     return this.sdkAgent;
   }
 
   /**
    * Get the currently selected provider name
    */
-  private getSelectedProvider(): 'claude' | 'gemini' | 'openrouter' {
+  private getSelectedProvider(): 'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama' {
+    if (isCodexSelected() && isCodexAvailable()) {
+      return 'codex';
+    }
     if (isOpenRouterSelected() && isOpenRouterAvailable()) {
       return 'openrouter';
     }
-    return (isGeminiSelected() && isGeminiAvailable()) ? 'gemini' : 'claude';
+    if (isGeminiSelected() && isGeminiAvailable()) {
+      return 'gemini';
+    }
+    if (isOllamaSelected()) {
+      const ollamaMode = getConfiguredOllamaMode();
+      if (ollamaMode === 'codex_bridge' && !isCodexAvailable()) {
+        throw new Error('Ollama provider selected in codex_bridge mode but codex CLI is unavailable. Install Codex CLI and ensure `codex --version` succeeds.');
+      }
+      if (ollamaMode === 'native' && !isOllamaAvailable()) {
+        throw new Error('Ollama provider selected but unavailable. Ensure CLAUDE_MEM_OLLAMA_BASE_URL and CLAUDE_MEM_OLLAMA_MODEL are configured, and Ollama is running.');
+      }
+      return 'ollama';
+    }
+    return (this.isLegacyClaudeProviderSelected() && isCodexAvailable()) ? 'codex' : 'claude';
+  }
+
+  private isLegacyClaudeProviderSelected(): boolean {
+    const settings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
+    return settings.CLAUDE_MEM_PROVIDER === 'claude';
+  }
+
+  /**
+   * Extract a human-readable text payload from potentially nested JSON strings.
+   * Codex history payloads can arrive as object, JSON string, or doubly-encoded JSON string.
+   */
+  private extractTextPayload(rawPayload: unknown): string | null {
+    let currentValue: unknown = rawPayload;
+
+    for (let depth = 0; depth < 3; depth++) {
+      if (typeof currentValue === 'string') {
+        const trimmedValue = currentValue.trim();
+        if (!trimmedValue) return null;
+
+        try {
+          currentValue = JSON.parse(trimmedValue);
+          continue;
+        } catch {
+          return trimmedValue;
+        }
+      }
+
+      if (currentValue && typeof currentValue === 'object') {
+        const payloadRecord = currentValue as Record<string, unknown>;
+        if (typeof payloadRecord.text === 'string' && payloadRecord.text.trim()) {
+          return payloadRecord.text.trim();
+        }
+        if (typeof payloadRecord.message === 'string' && payloadRecord.message.trim()) {
+          return payloadRecord.message.trim();
+        }
+      }
+
+      break;
+    }
+
+    return typeof currentValue === 'string' && currentValue.trim() ? currentValue.trim() : null;
+  }
+
+  /**
+   * Detect Codex history observer bootstrap prompts that are pure meta-instructions.
+   * These payloads are high-token and low-value, and can explode provider usage when replayed in bulk.
+   */
+  private isObserverBootstrapHistoryPayload(toolName: string, toolResponse: unknown): boolean {
+    if (toolName !== 'CodexHistoryEntry') return false;
+
+    const textPayload = this.extractTextPayload(toolResponse);
+    if (!textPayload) return false;
+
+    const normalizedText = textPayload.toLowerCase();
+    const hasObserverIdentity =
+      normalizedText.includes('you are a codex-mem, a specialized observer tool') ||
+      normalizedText.includes('you are a claude-mem, a specialized observer tool');
+    const hasObservedSessionBlock = normalizedText.includes('<observed_from_primary_session>');
+    const hasObserverWorkflowMarkers =
+      normalizedText.includes('memory processing start') ||
+      normalizedText.includes('progress summary checkpoint');
+
+    return hasObserverIdentity && hasObservedSessionBlock && hasObserverWorkflowMarkers;
   }
 
   /**
@@ -117,13 +235,30 @@ export class SessionRoutes extends BaseRouteHandler {
    */
   private startGeneratorWithProvider(
     session: ReturnType<typeof this.sessionManager.getSession>,
-    provider: 'claude' | 'gemini' | 'openrouter',
+    provider: 'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama',
     source: string
   ): void {
     if (!session) return;
 
-    const agent = provider === 'openrouter' ? this.openRouterAgent : (provider === 'gemini' ? this.geminiAgent : this.sdkAgent);
-    const agentName = provider === 'openrouter' ? 'OpenRouter' : (provider === 'gemini' ? 'Gemini' : 'Claude SDK');
+    const ollamaMode = provider === 'ollama' ? getConfiguredOllamaMode() : null;
+    const agent = provider === 'openrouter'
+      ? this.openRouterAgent
+      : provider === 'gemini'
+        ? this.geminiAgent
+        : provider === 'ollama'
+          ? (ollamaMode === 'codex_bridge' ? this.codexAgent : this.ollamaAgent)
+        : provider === 'codex'
+          ? this.codexAgent
+          : this.sdkAgent;
+    const agentName = provider === 'openrouter'
+      ? 'OpenRouter'
+      : provider === 'gemini'
+        ? 'Gemini'
+        : provider === 'ollama'
+          ? (ollamaMode === 'codex_bridge' ? 'Codex CLI (Ollama bridge)' : 'Ollama')
+        : provider === 'codex'
+          ? 'Codex CLI'
+          : 'Claude SDK';
 
     logger.info('SESSION', `Generator auto-starting (${source}) using ${agentName}`, {
       sessionId: session.sessionDbId,
@@ -419,6 +554,17 @@ export class SessionRoutes extends BaseRouteHandler {
       return;
     }
 
+    // Skip observer bootstrap instruction payloads from codex history replay.
+    // These are expensive, repetitive meta-prompts and provide little memory value.
+    if (this.isObserverBootstrapHistoryPayload(tool_name, tool_response)) {
+      logger.info('SESSION', 'Skipping observer bootstrap history payload', {
+        contentSessionId,
+        tool_name
+      });
+      res.json({ status: 'skipped', reason: 'observer_bootstrap' });
+      return;
+    }
+
     // Skip meta-observations: file operations on session-memory files
     const fileOperationTools = new Set(['Edit', 'Write', 'Read', 'NotebookEdit']);
     if (fileOperationTools.has(tool_name) && tool_input) {
@@ -544,7 +690,7 @@ export class SessionRoutes extends BaseRouteHandler {
    * Returns: { sessionDbId, promptNumber, skipped: boolean, reason?: string }
    */
   private handleSessionInitByClaudeId = this.wrapHandler((req: Request, res: Response): void => {
-    const { contentSessionId, project, prompt } = req.body;
+    const { contentSessionId, project, prompt, platform } = req.body;
 
     logger.info('HTTP', 'SessionRoutes: handleSessionInitByClaudeId called', {
       contentSessionId,
@@ -602,7 +748,29 @@ export class SessionRoutes extends BaseRouteHandler {
     }
 
     // Step 5: Save cleaned user prompt
-    store.saveUserPrompt(contentSessionId, promptNumber, cleanedPrompt);
+    const savedPromptId = store.saveUserPrompt(contentSessionId, promptNumber, cleanedPrompt);
+
+    // Broadcast prompt immediately so viewer updates without requiring a page refresh.
+    // Cursor/Codex only call this route and do not hit /sessions/:sessionDbId/init.
+    // Claude calls both routes, so avoid duplicate prompt events for that platform.
+    const normalizedPlatform = typeof platform === 'string'
+      ? platform.trim().toLowerCase()
+      : '';
+    const isClaudePlatform = normalizedPlatform === 'claude' || normalizedPlatform === 'claude-code';
+
+    if (!isClaudePlatform) {
+      const savedPrompt = store.getPromptById(savedPromptId);
+      if (savedPrompt) {
+        this.eventBroadcaster.broadcastNewPrompt({
+          id: savedPrompt.id,
+          content_session_id: savedPrompt.content_session_id,
+          project: savedPrompt.project,
+          prompt_number: savedPrompt.prompt_number,
+          prompt_text: savedPrompt.prompt_text,
+          created_at_epoch: savedPrompt.created_at_epoch
+        });
+      }
+    }
 
     // Debug-level log since CREATED already logged the key info
     logger.debug('SESSION', 'User prompt saved', {

@@ -42,6 +42,7 @@ let loggerSpies: ReturnType<typeof spyOn>[] = [];
 describe('ResponseProcessor', () => {
   // Mocks
   let mockStoreObservations: ReturnType<typeof mock>;
+  let mockUpdateMemorySessionId: ReturnType<typeof mock>;
   let mockChromaSyncObservation: ReturnType<typeof mock>;
   let mockChromaSyncSummary: ReturnType<typeof mock>;
   let mockBroadcast: ReturnType<typeof mock>;
@@ -65,6 +66,7 @@ describe('ResponseProcessor', () => {
       summaryId: 1,
       createdAtEpoch: 1700000000000,
     } as StorageResult));
+    mockUpdateMemorySessionId = mock(() => {});
 
     mockChromaSyncObservation = mock(() => Promise.resolve());
     mockChromaSyncSummary = mock(() => Promise.resolve());
@@ -72,6 +74,7 @@ describe('ResponseProcessor', () => {
     mockDbManager = {
       getSessionStore: () => ({
         storeObservations: mockStoreObservations,
+        updateMemorySessionId: mockUpdateMemorySessionId,
       }),
       getChromaSync: () => ({
         syncObservation: mockChromaSyncObservation,
@@ -633,6 +636,72 @@ describe('ResponseProcessor', () => {
           'TestAgent'
         )
       ).rejects.toThrow('Cannot store observations: memorySessionId not yet captured');
+    });
+
+    it('should initialize synthetic memorySessionId for Gemini when missing', async () => {
+      const session = createMockSession({
+        sessionDbId: 12,
+        contentSessionId: 'gemini-session-123',
+        memorySessionId: null,
+      });
+      const responseText = `
+        <observation>
+          <type>discovery</type>
+          <title>Recovered observation</title>
+          <facts></facts>
+          <concepts></concepts>
+          <files_read></files_read>
+          <files_modified></files_modified>
+        </observation>
+      `;
+
+      await processAgentResponse(
+        responseText,
+        session,
+        mockDbManager,
+        mockSessionManager,
+        mockWorker,
+        100,
+        null,
+        'Gemini'
+      );
+
+      expect(mockUpdateMemorySessionId).toHaveBeenCalledWith(12, 'gemini-worker-gemini-session-123');
+      expect(mockStoreObservations).toHaveBeenCalled();
+      expect(mockStoreObservations.mock.calls[0][0]).toBe('gemini-worker-gemini-session-123');
+    });
+
+    it('should initialize synthetic memorySessionId for Ollama when missing', async () => {
+      const session = createMockSession({
+        sessionDbId: 22,
+        contentSessionId: 'ollama-session-123',
+        memorySessionId: null,
+      });
+      const responseText = `
+        <observation>
+          <type>discovery</type>
+          <title>Recovered observation</title>
+          <facts></facts>
+          <concepts></concepts>
+          <files_read></files_read>
+          <files_modified></files_modified>
+        </observation>
+      `;
+
+      await processAgentResponse(
+        responseText,
+        session,
+        mockDbManager,
+        mockSessionManager,
+        mockWorker,
+        100,
+        null,
+        'Ollama'
+      );
+
+      expect(mockUpdateMemorySessionId).toHaveBeenCalledWith(22, 'ollama-worker-ollama-session-123');
+      expect(mockStoreObservations).toHaveBeenCalled();
+      expect(mockStoreObservations.mock.calls[0][0]).toBe('ollama-worker-ollama-session-123');
     });
   });
 });

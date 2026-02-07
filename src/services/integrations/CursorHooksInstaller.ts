@@ -134,7 +134,7 @@ export async function updateCursorContextForProject(projectName: string, port: n
 /**
  * Find cursor-hooks directory
  * Searches in order: marketplace install, source repo
- * Checks for both bash (common.sh) and PowerShell (common.ps1) scripts
+ * Supports both legacy script layouts and unified hooks.json layout.
  */
 export function findCursorHooksDir(): string | null {
   const possiblePaths = [
@@ -147,8 +147,11 @@ export function findCursorHooksDir(): string | null {
   ];
 
   for (const p of possiblePaths) {
-    // Check for either bash or PowerShell common script
-    if (existsSync(path.join(p, 'common.sh')) || existsSync(path.join(p, 'common.ps1'))) {
+    const hasLegacyCommonScript =
+      existsSync(path.join(p, 'common.sh')) || existsSync(path.join(p, 'common.ps1'));
+    const hasUnifiedHooksConfig = existsSync(path.join(p, 'hooks.json'));
+
+    if (hasLegacyCommonScript || hasUnifiedHooksConfig) {
       return p;
     }
   }
@@ -687,8 +690,6 @@ Examples:
   codex-mem cursor install user          # Install globally for user
   codex-mem cursor uninstall             # Remove from current project
   codex-mem cursor status                # Check if hooks are installed
-
-For more info: https://docs.codex-mem.ai/cursor
       `);
       return 0;
     }

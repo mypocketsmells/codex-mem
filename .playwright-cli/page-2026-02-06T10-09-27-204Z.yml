@@ -1,0 +1,645 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "codex-mem" [level=1] [ref=e4]:
+      - generic [ref=e6]: codex-mem
+    - generic [ref=e7]:
+      - combobox [ref=e8] [cursor=pointer]:
+        - option "All Projects" [selected]
+        - option "codex-mem"
+      - 'button "Theme: System (click for Light)" [ref=e9] [cursor=pointer]':
+        - img [ref=e10]
+      - button "Settings" [ref=e12] [cursor=pointer]:
+        - img [ref=e13]
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: decision
+          - generic [ref=e22]: codex-mem
+        - generic [ref=e23]:
+          - button "facts" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+            - generic [ref=e28]: facts
+          - button "narrative" [ref=e29] [cursor=pointer]:
+            - img [ref=e30]
+            - generic [ref=e33]: narrative
+      - generic [ref=e34]: Standardized bugfix workflow adopted
+      - generic [ref=e36]: Standardized, test-first bugfix method to deliver minimal, high-confidence changes.
+      - generic [ref=e38]: "#25 • 2/6/2026, 4:08:15 AM"
+    - generic [ref=e39]:
+      - generic [ref=e41]:
+        - generic [ref=e42]: Prompt
+        - generic [ref=e43]: codex-mem
+      - generic [ref=e44]: Gemini runtime FK validation at 2026-02-06T10:07Z
+      - generic [ref=e46]: "#43 • 2/6/2026, 4:07:00 AM"
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - generic [ref=e50]: discovery
+          - generic [ref=e51]: codex-mem
+        - generic [ref=e52]:
+          - button "facts" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+            - generic [ref=e57]: facts
+          - button "narrative" [ref=e58] [cursor=pointer]:
+            - img [ref=e59]
+            - generic [ref=e62]: narrative
+      - generic [ref=e63]: Recording halted after Gemini 3 provider switch
+      - generic [ref=e65]: Switching to the Gemini 3 provider stopped codex-mem event recording.
+      - generic [ref=e67]: "#28 • 2/6/2026, 4:04:02 AM"
+    - generic [ref=e68]:
+      - generic [ref=e70]:
+        - generic [ref=e71]: Prompt
+        - generic [ref=e72]: codex-mem
+      - generic [ref=e73]: it doesnt appear to be recording anything after i changed to gemini 3 provider.
+      - generic [ref=e75]: "#42 • 2/6/2026, 4:04:02 AM"
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - generic [ref=e79]: decision
+          - generic [ref=e80]: codex-mem
+        - generic [ref=e81]:
+          - button "facts" [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e86]: facts
+          - button "narrative" [ref=e87] [cursor=pointer]:
+            - img [ref=e88]
+            - generic [ref=e91]: narrative
+      - generic [ref=e92]: Playwright-based verification mandated
+      - generic [ref=e94]: Functionality confirmation will use Playwright-powered browser checks.
+      - generic [ref=e96]: "#27 • 2/6/2026, 4:04:02 AM"
+    - generic [ref=e97]:
+      - generic [ref=e99]:
+        - generic [ref=e100]: Prompt
+        - generic [ref=e101]: codex-mem
+      - generic [ref=e102]: use playwright to confirm functionality
+      - generic [ref=e104]: "#41 • 2/6/2026, 4:04:02 AM"
+    - generic [ref=e105]:
+      - generic [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]: decision
+          - generic [ref=e109]: codex-mem
+        - generic [ref=e110]:
+          - button "facts" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]
+            - generic [ref=e115]: facts
+          - button "narrative" [ref=e116] [cursor=pointer]:
+            - img [ref=e117]
+            - generic [ref=e120]: narrative
+      - generic [ref=e121]: Explicit next-step behavior required
+      - generic [ref=e123]: Outputs will enumerate concrete next steps with clear behavior.
+      - generic [ref=e125]: "#26 • 2/6/2026, 4:04:02 AM"
+    - generic [ref=e126]:
+      - generic [ref=e128]:
+        - generic [ref=e129]: Prompt
+        - generic [ref=e130]: codex-mem
+      - generic [ref=e131]: do the next steps, explicit behavior would be nice
+      - generic [ref=e133]: "#40 • 2/6/2026, 4:04:02 AM"
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - generic [ref=e136]:
+          - generic [ref=e137]: decision
+          - generic [ref=e138]: codex-mem
+        - generic [ref=e139]:
+          - button "facts" [ref=e140] [cursor=pointer]:
+            - img [ref=e141]
+            - generic [ref=e144]: facts
+          - button "narrative" [ref=e145] [cursor=pointer]:
+            - img [ref=e146]
+            - generic [ref=e149]: narrative
+      - generic [ref=e150]: Post-fix prompt reproduction for Gemini fix v5
+      - generic [ref=e152]: Reproduction prompt will validate behavior after Gemini fix v5 on 2026-02-06.
+      - generic [ref=e154]: "#23 • 2/6/2026, 4:01:06 AM"
+    - generic [ref=e155]:
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - generic [ref=e158]: discovery
+          - generic [ref=e159]: codex-mem
+        - generic [ref=e160]:
+          - button "facts" [ref=e161] [cursor=pointer]:
+            - img [ref=e162]
+            - generic [ref=e165]: facts
+          - button "narrative" [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+            - generic [ref=e170]: narrative
+      - generic [ref=e171]: Bash repro validates Gemini fix v5
+      - generic [ref=e173]: Bash runner returned expected output and exit code 0 after Gemini fix v5.
+      - generic [ref=e175]: "#24 • 2/6/2026, 4:00:41 AM"
+    - generic [ref=e176]:
+      - generic [ref=e178]:
+        - generic [ref=e179]: Prompt
+        - generic [ref=e180]: codex-mem
+      - generic [ref=e181]: Repro prompt after Gemini fix v5
+      - generic [ref=e183]: "#39 • 2/6/2026, 4:00:41 AM"
+    - generic [ref=e184]:
+      - generic [ref=e186]:
+        - generic [ref=e187]: Prompt
+        - generic [ref=e188]: codex-mem
+      - generic [ref=e189]: Repro prompt after Gemini fix v4
+      - generic [ref=e191]: "#38 • 2/6/2026, 3:58:15 AM"
+    - generic [ref=e192]:
+      - generic [ref=e194]:
+        - generic [ref=e195]: Prompt
+        - generic [ref=e196]: codex-mem
+      - generic [ref=e197]: Repro prompt after Gemini fix v3
+      - generic [ref=e199]: "#37 • 2/6/2026, 3:56:41 AM"
+    - generic [ref=e200]:
+      - generic [ref=e202]:
+        - generic [ref=e203]: Prompt
+        - generic [ref=e204]: codex-mem
+      - generic [ref=e205]: Repro prompt after Gemini fix v2
+      - generic [ref=e207]: "#36 • 2/6/2026, 3:54:11 AM"
+    - generic [ref=e208]:
+      - generic [ref=e210]:
+        - generic [ref=e211]: Prompt
+        - generic [ref=e212]: codex-mem
+      - generic [ref=e213]: Repro prompt after Gemini fix
+      - generic [ref=e215]: "#35 • 2/6/2026, 3:52:40 AM"
+    - generic [ref=e216]:
+      - generic [ref=e218]:
+        - generic [ref=e219]: Prompt
+        - generic [ref=e220]: codex-mem
+      - generic [ref=e221]: Repro prompt for Gemini recording issue
+      - generic [ref=e223]: "#34 • 2/6/2026, 3:50:51 AM"
+    - generic [ref=e224]:
+      - generic [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e227]: decision
+          - generic [ref=e228]: codex-mem
+        - generic [ref=e229]:
+          - button "facts" [ref=e230] [cursor=pointer]:
+            - img [ref=e231]
+            - generic [ref=e234]: facts
+          - button "narrative" [ref=e235] [cursor=pointer]:
+            - img [ref=e236]
+            - generic [ref=e239]: narrative
+      - generic [ref=e240]: Standardized bugfix workflow and output template
+      - generic [ref=e242]: Adopted reproduce-localize-fix-prove method with strict constraints and evidence-focused outputs.
+      - generic [ref=e244]: "#20 • 2/6/2026, 3:07:12 AM"
+    - article [ref=e245]:
+      - generic [ref=e246]:
+        - generic [ref=e247]:
+          - generic [ref=e248]: Session Summary
+          - generic [ref=e249]: codex-mem
+        - heading "Fix summary lag by prioritizing summarize messages; validate with targeted tests under the reproduce-localize-fix-prove workflow" [level=2] [ref=e250]
+      - generic [ref=e251]:
+        - generic [ref=e252]:
+          - generic [ref=e253]:
+            - img "Investigated" [ref=e254]
+            - heading "Investigated" [level=3] [ref=e255]
+          - generic [ref=e256]: "Examined FIFO-only claim behavior in `PendingMessageStore.claimAndDelete()`, inspected worker runtime logs for claim order, and exercised ingestion flow and sqlite queue behavior via focused tests alongside full repo checks."
+        - generic [ref=e257]:
+          - generic [ref=e258]:
+            - img "Learned" [ref=e259]
+            - heading "Learned" [level=3] [ref=e260]
+          - generic [ref=e261]: "FIFO ordering allowed older `observation` messages to block newer `summarize` messages, causing lag; prioritizing `message_type='summarize'` ahead of FIFO removes the lag while keeping overall queue semantics stable. The ingestion pipeline produces both observation candidates and summary requests when the helper flow runs end-to-end, and runtime logs confirmed the new claim order in practice."
+        - generic [ref=e262]:
+          - generic [ref=e263]:
+            - img "Completed" [ref=e264]
+            - heading "Completed" [level=3] [ref=e265]
+          - generic [ref=e266]: "Implemented priority in `claimAndDelete()` for `summarize` messages. Added a sqlite queue-priority unit test and a CLI ingestion flow test asserting non-empty observation candidates and summary requests with final assistant output. Verified `bun test` for the two focused tests, `npm run test` (844 pass, 0 fail), and `npm run build`. Confirmed runtime ordering in `/Users/mypocketsmells/.codex-mem/logs/codex-mem-2026-02-06.log:2537-2567`. Cleaned temporary test sessions/messages from the local DB after verification."
+        - generic [ref=e267]:
+          - generic [ref=e268]:
+            - img "Next Steps" [ref=e269]
+            - heading "Next Steps" [level=3] [ref=e270]
+          - generic [ref=e271]: Continue removing legacy Claude compatibility paths/settings in small slices (provider fallbacks, labels, env-key shims) with a focused test added per removal.
+      - generic [ref=e272]:
+        - generic [ref=e273]: "Session #2"
+        - generic [ref=e274]: •
+        - time [ref=e275]: 2/6/2026, 3:06:53 AM
+    - generic [ref=e276]:
+      - generic [ref=e277]:
+        - generic [ref=e278]:
+          - generic [ref=e279]: decision
+          - generic [ref=e280]: codex-mem
+        - generic [ref=e281]:
+          - button "facts" [ref=e282] [cursor=pointer]:
+            - img [ref=e283]
+            - generic [ref=e286]: facts
+          - button "narrative" [ref=e287] [cursor=pointer]:
+            - img [ref=e288]
+            - generic [ref=e291]: narrative
+      - generic [ref=e292]: Reaffirmed focus on completing TODO backlog
+      - generic [ref=e294]: Directive emphasizes continuing execution of pending TODO items.
+      - generic [ref=e296]: "#22 • 2/6/2026, 3:06:53 AM"
+    - generic [ref=e297]:
+      - generic [ref=e299]:
+        - generic [ref=e300]: Prompt
+        - generic [ref=e301]: codex-mem
+      - generic [ref=e302]: keep completing the todolist
+      - generic [ref=e304]: "#33 • 2/6/2026, 3:06:53 AM"
+    - generic [ref=e305]:
+      - generic [ref=e306]:
+        - generic [ref=e307]:
+          - generic [ref=e308]: decision
+          - generic [ref=e309]: codex-mem
+        - generic [ref=e310]:
+          - button "facts" [ref=e311] [cursor=pointer]:
+            - img [ref=e312]
+            - generic [ref=e315]: facts
+          - button "narrative" [ref=e316] [cursor=pointer]:
+            - img [ref=e317]
+            - generic [ref=e320]: narrative
+      - generic [ref=e321]: Continue executing repository TODO backlog
+      - generic [ref=e323]: Prioritize ongoing TODO items as the immediate work focus.
+      - generic [ref=e325]: "#21 • 2/6/2026, 3:06:53 AM"
+    - generic [ref=e326]:
+      - generic [ref=e328]:
+        - generic [ref=e329]: Prompt
+        - generic [ref=e330]: codex-mem
+      - generic [ref=e331]: keep working on the todo list
+      - generic [ref=e333]: "#32 • 2/6/2026, 3:06:53 AM"
+    - generic [ref=e334]:
+      - generic [ref=e335]:
+        - generic [ref=e336]:
+          - generic [ref=e337]: decision
+          - generic [ref=e338]: codex-mem
+        - generic [ref=e339]:
+          - button "facts" [ref=e340] [cursor=pointer]:
+            - img [ref=e341]
+            - generic [ref=e344]: facts
+          - button "narrative" [ref=e345] [cursor=pointer]:
+            - img [ref=e346]
+            - generic [ref=e349]: narrative
+      - generic [ref=e350]: Disciplined Bugfix Workflow and Output Standard Adopted
+      - generic [ref=e352]: Method mandates reproduce, localize, minimal fix, and proof via tests.
+      - generic [ref=e354]: "#2 • 2/6/2026, 2:28:04 AM"
+    - article [ref=e355]:
+      - generic [ref=e356]:
+        - generic [ref=e357]:
+          - generic [ref=e358]: Session Summary
+          - generic [ref=e359]: codex-mem
+        - heading "Make codex-mem Codex-native (not Claude), ensure conversation memory records/appears, validate via Playwright against localhost:37777, and backfill summaries after fixes." [level=2] [ref=e360]
+      - generic [ref=e361]:
+        - generic [ref=e362]:
+          - generic [ref=e363]:
+            - img "Investigated" [ref=e364]
+            - heading "Investigated" [level=3] [ref=e365]
+          - generic [ref=e366]: "Provider plumbing and defaults: SettingsDefaultsManager.ts:68 shows default \"claude\"; SettingsRoutes.ts:235 disallows \"codex\". Session routing: SessionRoutes.ts:68 and SDKAgent.ts:27 use Anthropic when not Gemini/OpenRouter. Ingestion/summarize path: ingest-codex-history.ts:297 and cli/handlers/summarize.ts:47 call /api/sessions/summarize, feeding the Claude-first pipeline. Runtime state: prompts stored but /api/observations and /api/summaries for project=codex-mem are empty. Log scripts: concrete repro of worker:logs failure when ~/.codex-mem/logs exists but only ~/.claude-mem/logs has today’s file."
+        - generic [ref=e367]:
+          - generic [ref=e368]:
+            - img "Learned" [ref=e369]
+            - heading "Learned" [level=3] [ref=e370]
+          - generic [ref=e371]: The system remains Claude-first end-to-end, so Codex login does not generate observations/summaries. Validation currently rejects "codex" as a provider, and session routing falls back to Anthropic SDK. Ingestion relies on the same provider path, explaining empty observations/summaries. The log tailing bug was caused by directory-existence checks that didn’t account for missing daily files, not just missing directories.
+        - generic [ref=e372]:
+          - generic [ref=e373]:
+            - img "Completed" [ref=e374]
+            - heading "Completed" [level=3] [ref=e375]
+          - generic [ref=e376]: "Bugfix: updated package.json scripts (worker:logs, worker:tail) to probe codex-mem-YYYY-MM-DD.log and claude-mem-YYYY-MM-DD.log in both primary and legacy dirs; added focused test tests/infrastructure/package-scripts.test.ts to cover legacy-dir fallback. Verification: targeted test passes; full suite 834 pass, 0 fail; build succeeds. Process alignment: disciplined reproduce→localize→minimal fix→prove workflow adopted and a further iteration approved."
+        - generic [ref=e377]:
+          - generic [ref=e378]:
+            - img "Next Steps" [ref=e379]
+            - heading "Next Steps" [level=3] [ref=e380]
+          - generic [ref=e381]: "Implement Phase 1 Codex provider: add \"codex\" to provider validation and defaults; introduce Codex-backed agent path for observations/summaries; wire selection into SessionRoutes/SDKAgent; update UI/settings to choose Codex. Re-run ingestion to backfill corrected summaries. Use Playwright to confirm conversation memory appears at http://localhost:37777. Optionally add a friendly “no log file found” message if no candidates exist. Begin removing remaining Claude references once Codex path is live."
+      - generic [ref=e382]:
+        - generic [ref=e383]: "Session #1"
+        - generic [ref=e384]: •
+        - time [ref=e385]: 2/6/2026, 2:27:47 AM
+    - generic [ref=e386]:
+      - generic [ref=e387]:
+        - generic [ref=e388]:
+          - generic [ref=e389]: decision
+          - generic [ref=e390]: codex-mem
+        - generic [ref=e391]:
+          - button "facts" [ref=e392] [cursor=pointer]:
+            - img [ref=e393]
+            - generic [ref=e396]: facts
+          - button "narrative" [ref=e397] [cursor=pointer]:
+            - img [ref=e398]
+            - generic [ref=e401]: narrative
+      - generic [ref=e402]: Implement Then Test With TODO Tracking
+      - generic [ref=e404]: Directive to execute implementation, validate via tests, and maintain a task list.
+      - generic [ref=e406]: "#14 • 2/6/2026, 2:27:47 AM"
+    - generic [ref=e407]:
+      - generic [ref=e409]:
+        - generic [ref=e410]: Prompt
+        - generic [ref=e411]: codex-mem
+      - generic [ref=e412]: implement, then test. create a todo list
+      - generic [ref=e414]: "#25 • 2/6/2026, 2:27:47 AM"
+    - generic [ref=e415]:
+      - generic [ref=e416]:
+        - generic [ref=e417]:
+          - generic [ref=e418]: decision
+          - generic [ref=e419]: codex-mem
+        - generic [ref=e420]:
+          - button "facts" [ref=e421] [cursor=pointer]:
+            - img [ref=e422]
+            - generic [ref=e425]: facts
+          - button "narrative" [ref=e426] [cursor=pointer]:
+            - img [ref=e427]
+            - generic [ref=e430]: narrative
+      - generic [ref=e431]: Identify Requirements to Enable Codex Functionality
+      - generic [ref=e433]: Directive to determine steps for Codex-only operation across the system.
+      - generic [ref=e435]: "#13 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e436]:
+      - generic [ref=e438]:
+        - generic [ref=e439]: Prompt
+        - generic [ref=e440]: codex-mem
+      - generic [ref=e441]: Find out what we need to do to make this functional with codex
+      - generic [ref=e443]: "#24 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e444]:
+      - generic [ref=e445]:
+        - generic [ref=e446]:
+          - generic [ref=e447]: decision
+          - generic [ref=e448]: codex-mem
+        - generic [ref=e449]:
+          - button "facts" [ref=e450] [cursor=pointer]:
+            - img [ref=e451]
+            - generic [ref=e454]: facts
+          - button "narrative" [ref=e455] [cursor=pointer]:
+            - img [ref=e456]
+            - generic [ref=e459]: narrative
+      - generic [ref=e460]: Deprecate Claude References and Standardize on Codex
+      - generic [ref=e462]: Project will remove all Claude mentions and behavior in favor of Codex-only.
+      - generic [ref=e464]: "#12 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e465]:
+      - generic [ref=e467]:
+        - generic [ref=e468]: Prompt
+        - generic [ref=e469]: codex-mem
+      - generic [ref=e470]: I am logged into Codex, this isn't supposed to work for Claude anymore. We should be getting rid of any references to claude as a whole.
+      - generic [ref=e472]: "#23 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e473]:
+      - generic [ref=e474]:
+        - generic [ref=e475]:
+          - generic [ref=e476]: decision
+          - generic [ref=e477]: codex-mem
+        - generic [ref=e478]:
+          - button "facts" [ref=e479] [cursor=pointer]:
+            - img [ref=e480]
+            - generic [ref=e483]: facts
+          - button "narrative" [ref=e484] [cursor=pointer]:
+            - img [ref=e485]
+            - generic [ref=e488]: narrative
+      - generic [ref=e489]: Re-run Ingestion to Backfill Corrected Summaries
+      - generic [ref=e491]: Proceed with ingestion backfill so session summaries include corrected assistant output.
+      - generic [ref=e493]: "#11 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e494]:
+      - generic [ref=e496]:
+        - generic [ref=e497]: Prompt
+        - generic [ref=e498]: codex-mem
+      - generic [ref=e499]: "Next steps: Run ingestion again to backfill sessions with corrected assistant output in summaries (if you want, I can run the exact backfill command next). Let's do this"
+      - generic [ref=e501]: "#22 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e502]:
+      - generic [ref=e503]:
+        - generic [ref=e504]:
+          - generic [ref=e505]: discovery
+          - generic [ref=e506]: codex-mem
+        - generic [ref=e507]:
+          - button "facts" [ref=e508] [cursor=pointer]:
+            - img [ref=e509]
+            - generic [ref=e512]: facts
+          - button "narrative" [ref=e513] [cursor=pointer]:
+            - img [ref=e514]
+            - generic [ref=e517]: narrative
+      - generic [ref=e518]: Output Recording Not Detected
+      - generic [ref=e520]: Session reports missing output capture by the system.
+      - generic [ref=e522]: "#10 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e523]:
+      - generic [ref=e525]:
+        - generic [ref=e526]: Prompt
+        - generic [ref=e527]: codex-mem
+      - generic [ref=e528]: it doesnt seem to be recording output
+      - generic [ref=e530]: "#21 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e531]:
+      - generic [ref=e532]:
+        - generic [ref=e533]:
+          - generic [ref=e534]: bugfix
+          - generic [ref=e535]: codex-mem
+        - generic [ref=e536]:
+          - button "facts" [ref=e537] [cursor=pointer]:
+            - img [ref=e538]
+            - generic [ref=e541]: facts
+          - button "narrative" [ref=e542] [cursor=pointer]:
+            - img [ref=e543]
+            - generic [ref=e546]: narrative
+      - generic [ref=e547]: Fixed log tail fallback for codex/claude dirs
+      - generic [ref=e549]: Scripts now probe both dirs and names to avoid runtime failures.
+      - generic [ref=e551]: "#9 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e552]:
+      - generic [ref=e554]:
+        - generic [ref=e555]: Prompt
+        - generic [ref=e556]: codex-mem
+      - generic [ref=e557]: "it appears we found this issue in another thread. `npm run test` and `npm run build` were green initially, so I reproduced a concrete runtime bug in the changed log-script area instead of guessing: `npm run worker:logs` failed when `~/.codex-mem/logs` existed but the only log file was in `~/.claude-mem/logs`. The cause was fallback logic that only switched directories when the primary directory was missing, not when the primary directory existed but lacked today’s log file. I made a minimal script-only fix to probe codex and legacy log names in both the primary and legacy data dirs. I then added a focused test that fails on the pre-fix behavior and passes with the fix, and re-ran full repo checks. - What changed: Updated `worker:logs` and `worker:tail` fallback resolution to check `codex-mem-YYYY-MM-DD.log` and `claude-mem-YYYY-MM-DD.log` in both primary and legacy dirs; added one focused infra test for legacy-dir fallback behavior. - Where (paths): `/Users/mypocketsmells/Documents/GitHub/codex-mem/package.json:56`, `/Users/mypocketsmells/Documents/GitHub/codex-mem/package.json:57`, `/Users/mypocketsmells/Documents/GitHub/codex-mem/tests/infrastructure/package-scripts.test.ts:43`. - Evidence (tests/logs): Pre-fix repro returned `exit=1` with `tail: .../.codex-mem/logs/codex-mem-<date>.log: No such file`; new targeted test initially failed (`Expected: 0 Received: 1`), then passed after fix (`bun test /Users/mypocketsmells/Documents/GitHub/codex-mem/tests/infrastructure/package-scripts.test.ts`); full checks now pass (`npm run test`: `834 pass, 0 fail`; `npm run build`: success). No `lint` script exists in `/Users/mypocketsmells/Documents/GitHub/codex-mem/package.json`, so lint was not runnable via repo scripts. - Risks: If no log file exists in any checked location, `tail` still fails (expected), and behavior remains shell-dependent for these npm script commands. - Next steps: 1. If you want friendlier UX, I can add a minimal guard to print a clear “no log file found” message before exiting."
+      - generic [ref=e559]: "#20 • 2/6/2026, 2:27:46 AM"
+    - generic [ref=e560]:
+      - generic [ref=e561]:
+        - generic [ref=e562]:
+          - generic [ref=e563]: decision
+          - generic [ref=e564]: codex-mem
+        - generic [ref=e565]:
+          - button "facts" [ref=e566] [cursor=pointer]:
+            - img [ref=e567]
+            - generic [ref=e570]: facts
+          - button "narrative" [ref=e571] [cursor=pointer]:
+            - img [ref=e572]
+            - generic [ref=e575]: narrative
+      - generic [ref=e576]: Ensure Conversation Memory Auto-Updates
+      - generic [ref=e578]: Request to make memory consistently update alongside the ongoing conversation.
+      - generic [ref=e580]: "#8 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e581]:
+      - generic [ref=e583]:
+        - generic [ref=e584]: Prompt
+        - generic [ref=e585]: codex-mem
+      - generic [ref=e586]: Can we fix this so that it always updates with the conversation?
+      - generic [ref=e588]: "#19 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e589]:
+      - generic [ref=e590]:
+        - generic [ref=e591]:
+          - generic [ref=e592]: decision
+          - generic [ref=e593]: codex-mem
+        - generic [ref=e594]:
+          - button "facts" [ref=e595] [cursor=pointer]:
+            - img [ref=e596]
+            - generic [ref=e599]: facts
+          - button "narrative" [ref=e600] [cursor=pointer]:
+            - img [ref=e601]
+            - generic [ref=e604]: narrative
+      - generic [ref=e605]: Verify Conversation Memory Visibility with Playwright
+      - generic [ref=e607]: Instruction to confirm current conversation memory appears via Playwright.
+      - generic [ref=e609]: "#7 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e610]:
+      - generic [ref=e612]:
+        - generic [ref=e613]: Prompt
+        - generic [ref=e614]: codex-mem
+      - generic [ref=e615]: use playwright to confirm memory of the current conversation shows up
+      - generic [ref=e617]: "#18 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e618]:
+      - generic [ref=e619]:
+        - generic [ref=e620]:
+          - generic [ref=e621]: decision
+          - generic [ref=e622]: codex-mem
+        - generic [ref=e623]:
+          - button "facts" [ref=e624] [cursor=pointer]:
+            - img [ref=e625]
+            - generic [ref=e628]: facts
+          - button "narrative" [ref=e629] [cursor=pointer]:
+            - img [ref=e630]
+            - generic [ref=e633]: narrative
+      - generic [ref=e634]: Approval to Continue Current Iteration
+      - generic [ref=e636]: Explicit go-ahead to proceed with ongoing workflow without changes.
+      - generic [ref=e638]: "#6 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e639]:
+      - generic [ref=e641]:
+        - generic [ref=e642]: Prompt
+        - generic [ref=e643]: codex-mem
+      - generic [ref=e644]: continue
+      - generic [ref=e646]: "#17 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e647]:
+      - generic [ref=e648]:
+        - generic [ref=e649]:
+          - generic [ref=e650]: decision
+          - generic [ref=e651]: codex-mem
+        - generic [ref=e652]:
+          - button "facts" [ref=e653] [cursor=pointer]:
+            - img [ref=e654]
+            - generic [ref=e657]: facts
+          - button "narrative" [ref=e658] [cursor=pointer]:
+            - img [ref=e659]
+            - generic [ref=e662]: narrative
+      - generic [ref=e663]: Validate MCP Locally with Playwright at localhost:37777
+      - generic [ref=e665]: Instruction to run the correct Playwright command against the local MCP server.
+      - generic [ref=e667]: "#5 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e668]:
+      - generic [ref=e670]:
+        - generic [ref=e671]: Prompt
+        - generic [ref=e672]: codex-mem
+      - generic [ref=e673]: can you test the mcp using playwright and going to localhost:37777? make sure to use the right playwright command
+      - generic [ref=e675]: "#16 • 2/6/2026, 2:27:45 AM"
+    - generic [ref=e676]:
+      - generic [ref=e677]:
+        - generic [ref=e678]:
+          - generic [ref=e679]: decision
+          - generic [ref=e680]: codex-mem
+        - generic [ref=e681]:
+          - button "facts" [ref=e682] [cursor=pointer]:
+            - img [ref=e683]
+            - generic [ref=e686]: facts
+          - button "narrative" [ref=e687] [cursor=pointer]:
+            - img [ref=e688]
+            - generic [ref=e691]: narrative
+      - generic [ref=e692]: Greenlight for Another Bugfix Pass
+      - generic [ref=e694]: Session approves an additional iteration using the disciplined fix workflow.
+      - generic [ref=e696]: "#4 • 2/6/2026, 2:27:44 AM"
+    - generic [ref=e697]:
+      - generic [ref=e699]:
+        - generic [ref=e700]: Prompt
+        - generic [ref=e701]: codex-mem
+      - generic [ref=e702]: yes, do another pass
+      - generic [ref=e704]: "#15 • 2/6/2026, 2:27:44 AM"
+    - generic [ref=e705]:
+      - generic [ref=e706]:
+        - generic [ref=e707]:
+          - generic [ref=e708]: discovery
+          - generic [ref=e709]: codex-mem
+        - generic [ref=e710]:
+          - button "facts" [ref=e711] [cursor=pointer]:
+            - img [ref=e712]
+            - generic [ref=e715]: facts
+          - button "narrative" [ref=e716] [cursor=pointer]:
+            - img [ref=e717]
+            - generic [ref=e720]: narrative
+      - generic [ref=e721]: Bugfix Workflow Standard Located in codex-history.jsonl
+      - generic [ref=e723]: Repository history records disciplined reproduce-localize-fix-prove method and reporting format.
+      - generic [ref=e725]: "#3 • 2/6/2026, 2:27:44 AM"
+    - generic [ref=e726]:
+      - generic [ref=e728]:
+        - generic [ref=e729]: Prompt
+        - generic [ref=e730]: codex-mem
+      - generic [ref=e731]: "Find and fix bugs in my codebase with minimal, high-confidence changes. Method (grounded + disciplined): 1) Reproduce: run tests/lint/build (or follow the existing repo scripts). If I provided an error, reproduce that exact failure. 2) Localize: identify the smallest set of files/lines involved (stack traces, failing tests, logs). 3) Fix: implement the minimal change that resolves the issue without refactors or unrelated cleanup. 4) Prove: add/update a focused test (or a tight repro) that fails before and passes after. Constraints: - Do NOT invent errors or pretend to run commands you cannot run. Do not rm without my approval - No scope drift: no new features, no UI embellishments, no style overhauls. - If information is missing, state what you can confirm from the repo and what remains unknown. Output: - Summary (3–6 sentences max): what was broken, why, and the fix. - Then ≤5 bullets: What changed, Where (paths), Evidence (tests/logs), Risks, Next steps."
+      - generic [ref=e733]: "#14 • 2/6/2026, 2:27:44 AM"
+    - generic [ref=e734]:
+      - generic [ref=e736]:
+        - generic [ref=e737]: Prompt
+        - generic [ref=e738]: codex-mem
+      - generic [ref=e739]: "Find and fix bugs in my codebase with minimal, high-confidence changes. Method (grounded + disciplined): 1) Reproduce: run tests/lint/build (or follow the existing repo scripts). If I provided an error, reproduce that exact failure. 2) Localize: identify the smallest set of files/lines involved (stack traces, failing tests, logs). 3) Fix: implement the minimal change that resolves the issue without refactors or unrelated cleanup. 4) Prove: add/update a focused test (or a tight repro) that fails before and passes after. Constraints: - Do NOT invent errors or pretend to run commands you cannot run. Do not rm without my approval - No scope drift: no new features, no UI embellishments, no style overhauls. - If information is missing, state what you can confirm from the repo and what remains unknown. Output: - Summary (3–6 sentences max): what was broken, why, and the fix. - Then ≤5 bullets: What changed, Where (paths), Evidence (tests/logs), Risks, Next steps."
+      - generic [ref=e741]: "#13 • 2/6/2026, 2:19:37 AM"
+    - generic [ref=e742]:
+      - generic [ref=e743]:
+        - generic [ref=e744]:
+          - generic [ref=e745]: decision
+          - generic [ref=e746]: codex-mem
+        - generic [ref=e747]:
+          - button "facts" [ref=e748] [cursor=pointer]:
+            - img [ref=e749]
+            - generic [ref=e752]: facts
+          - button "narrative" [ref=e753] [cursor=pointer]:
+            - img [ref=e754]
+            - generic [ref=e757]: narrative
+      - generic [ref=e758]: Disciplined bugfix workflow and reporting standard adopted
+      - generic [ref=e760]: Team standardized a four-step bugfix method with minimal changes and mandatory tests to ensure high-confidence fixes and traceable evidence.
+      - generic [ref=e762]: "#1 • 2/6/2026, 2:19:08 AM"
+    - generic [ref=e763]:
+      - generic [ref=e765]:
+        - generic [ref=e766]: Prompt
+        - generic [ref=e767]: codex-mem
+      - generic [ref=e768]: implement, then test. create a todo list
+      - generic [ref=e770]: "#12 • 2/6/2026, 2:18:47 AM"
+    - generic [ref=e771]:
+      - generic [ref=e773]:
+        - generic [ref=e774]: Prompt
+        - generic [ref=e775]: codex-mem
+      - generic [ref=e776]: Find out what we need to do to make this functional with codex
+      - generic [ref=e778]: "#11 • 2/6/2026, 2:18:47 AM"
+    - generic [ref=e779]:
+      - generic [ref=e781]:
+        - generic [ref=e782]: Prompt
+        - generic [ref=e783]: codex-mem
+      - generic [ref=e784]: I am logged into Codex, this isn't supposed to work for Claude anymore. We should be getting rid of any references to claude as a whole.
+      - generic [ref=e786]: "#10 • 2/6/2026, 2:18:47 AM"
+    - generic [ref=e787]:
+      - generic [ref=e789]:
+        - generic [ref=e790]: Prompt
+        - generic [ref=e791]: codex-mem
+      - generic [ref=e792]: "Next steps: Run ingestion again to backfill sessions with corrected assistant output in summaries (if you want, I can run the exact backfill command next). Let's do this"
+      - generic [ref=e794]: "#9 • 2/6/2026, 2:18:47 AM"
+    - generic [ref=e795]:
+      - generic [ref=e797]:
+        - generic [ref=e798]: Prompt
+        - generic [ref=e799]: codex-mem
+      - generic [ref=e800]: it doesnt seem to be recording output
+      - generic [ref=e802]: "#8 • 2/6/2026, 2:18:47 AM"
+    - generic [ref=e803]:
+      - generic [ref=e805]:
+        - generic [ref=e806]: Prompt
+        - generic [ref=e807]: codex-mem
+      - generic [ref=e808]: "it appears we found this issue in another thread. `npm run test` and `npm run build` were green initially, so I reproduced a concrete runtime bug in the changed log-script area instead of guessing: `npm run worker:logs` failed when `~/.codex-mem/logs` existed but the only log file was in `~/.claude-mem/logs`. The cause was fallback logic that only switched directories when the primary directory was missing, not when the primary directory existed but lacked today’s log file. I made a minimal script-only fix to probe codex and legacy log names in both the primary and legacy data dirs. I then added a focused test that fails on the pre-fix behavior and passes with the fix, and re-ran full repo checks. - What changed: Updated `worker:logs` and `worker:tail` fallback resolution to check `codex-mem-YYYY-MM-DD.log` and `claude-mem-YYYY-MM-DD.log` in both primary and legacy dirs; added one focused infra test for legacy-dir fallback behavior. - Where (paths): `/Users/mypocketsmells/Documents/GitHub/codex-mem/package.json:56`, `/Users/mypocketsmells/Documents/GitHub/codex-mem/package.json:57`, `/Users/mypocketsmells/Documents/GitHub/codex-mem/tests/infrastructure/package-scripts.test.ts:43`. - Evidence (tests/logs): Pre-fix repro returned `exit=1` with `tail: .../.codex-mem/logs/codex-mem-<date>.log: No such file`; new targeted test initially failed (`Expected: 0 Received: 1`), then passed after fix (`bun test /Users/mypocketsmells/Documents/GitHub/codex-mem/tests/infrastructure/package-scripts.test.ts`); full checks now pass (`npm run test`: `834 pass, 0 fail`; `npm run build`: success). No `lint` script exists in `/Users/mypocketsmells/Documents/GitHub/codex-mem/package.json`, so lint was not runnable via repo scripts. - Risks: If no log file exists in any checked location, `tail` still fails (expected), and behavior remains shell-dependent for these npm script commands. - Next steps: 1. If you want friendlier UX, I can add a minimal guard to print a clear “no log file found” message before exiting."
+      - generic [ref=e810]: "#7 • 2/6/2026, 2:18:47 AM"
+    - generic [ref=e811]:
+      - generic [ref=e813]:
+        - generic [ref=e814]: Prompt
+        - generic [ref=e815]: codex-mem
+      - generic [ref=e816]: Can we fix this so that it always updates with the conversation?
+      - generic [ref=e818]: "#6 • 2/6/2026, 2:18:46 AM"
+    - generic [ref=e819]:
+      - generic [ref=e821]:
+        - generic [ref=e822]: Prompt
+        - generic [ref=e823]: codex-mem
+      - generic [ref=e824]: use playwright to confirm memory of the current conversation shows up
+      - generic [ref=e826]: "#5 • 2/6/2026, 2:18:46 AM"
+    - generic [ref=e827]:
+      - generic [ref=e829]:
+        - generic [ref=e830]: Prompt
+        - generic [ref=e831]: codex-mem
+      - generic [ref=e832]: continue
+      - generic [ref=e834]: "#4 • 2/6/2026, 2:18:46 AM"
+    - generic [ref=e835]:
+      - generic [ref=e837]:
+        - generic [ref=e838]: Prompt
+        - generic [ref=e839]: codex-mem
+      - generic [ref=e840]: can you test the mcp using playwright and going to localhost:37777? make sure to use the right playwright command
+      - generic [ref=e842]: "#3 • 2/6/2026, 2:18:46 AM"
+    - generic [ref=e843]:
+      - generic [ref=e845]:
+        - generic [ref=e846]: Prompt
+        - generic [ref=e847]: codex-mem
+      - generic [ref=e848]: yes, do another pass
+      - generic [ref=e850]: "#2 • 2/6/2026, 2:18:45 AM"
+    - generic [ref=e851]:
+      - generic [ref=e853]:
+        - generic [ref=e854]: Prompt
+        - generic [ref=e855]: codex-mem
+      - generic [ref=e856]: "Find and fix bugs in my codebase with minimal, high-confidence changes. Method (grounded + disciplined): 1) Reproduce: run tests/lint/build (or follow the existing repo scripts). If I provided an error, reproduce that exact failure. 2) Localize: identify the smallest set of files/lines involved (stack traces, failing tests, logs). 3) Fix: implement the minimal change that resolves the issue without refactors or unrelated cleanup. 4) Prove: add/update a focused test (or a tight repro) that fails before and passes after. Constraints: - Do NOT invent errors or pretend to run commands you cannot run. Do not rm without my approval - No scope drift: no new features, no UI embellishments, no style overhauls. - If information is missing, state what you can confirm from the repo and what remains unknown. Output: - Summary (3–6 sentences max): what was broken, why, and the fix. - Then ≤5 bullets: What changed, Where (paths), Evidence (tests/logs), Risks, Next steps."
+      - generic [ref=e858]: "#1 • 2/6/2026, 2:18:45 AM"
+    - generic [ref=e859]: No more items to load
+  - button "Toggle Console" [ref=e860] [cursor=pointer]:
+    - img [ref=e861]

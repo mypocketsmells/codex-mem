@@ -12,7 +12,8 @@ const path = require('path');
 const os = require('os');
 
 const INSTALLED_PATH = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack');
-const CACHE_BASE_PATH = path.join(os.homedir(), '.claude', 'plugins', 'cache', 'thedotmack', 'claude-mem');
+const CACHE_ROOT_PATH = path.join(os.homedir(), '.claude', 'plugins', 'cache', 'thedotmack');
+const PLUGIN_JSON_PATH = path.join(__dirname, '..', 'plugin', '.claude-plugin', 'plugin.json');
 
 function getCurrentBranch() {
   try {
@@ -45,14 +46,16 @@ if (branch && branch !== 'main' && !isForce) {
   process.exit(1);
 }
 
-// Get version from plugin.json
-function getPluginVersion() {
+// Get plugin metadata from plugin.json.
+function getPluginMetadata() {
   try {
-    const pluginJsonPath = path.join(__dirname, '..', 'plugin', '.claude-plugin', 'plugin.json');
-    const pluginJson = JSON.parse(readFileSync(pluginJsonPath, 'utf-8'));
-    return pluginJson.version;
+    const pluginJson = JSON.parse(readFileSync(PLUGIN_JSON_PATH, 'utf-8'));
+    return {
+      name: pluginJson.name || 'codex-mem',
+      version: pluginJson.version
+    };
   } catch (error) {
-    console.error('\x1b[31m%s\x1b[0m', 'Failed to read plugin version:', error.message);
+    console.error('\x1b[31m%s\x1b[0m', 'Failed to read plugin metadata:', error.message);
     process.exit(1);
   }
 }
@@ -72,10 +75,11 @@ try {
   );
 
   // Sync to cache folder with version
-  const version = getPluginVersion();
-  const CACHE_VERSION_PATH = path.join(CACHE_BASE_PATH, version);
+  const pluginMetadata = getPluginMetadata();
+  const cacheBasePath = path.join(CACHE_ROOT_PATH, pluginMetadata.name);
+  const CACHE_VERSION_PATH = path.join(cacheBasePath, pluginMetadata.version);
 
-  console.log(`Syncing to cache folder (version ${version})...`);
+  console.log(`Syncing to cache folder (${pluginMetadata.name} v${pluginMetadata.version})...`);
   execSync(
     `rsync -av --delete --exclude=.git plugin/ "${CACHE_VERSION_PATH}/"`,
     { stdio: 'inherit' }

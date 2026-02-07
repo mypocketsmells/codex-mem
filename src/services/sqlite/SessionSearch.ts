@@ -490,12 +490,13 @@ export class SessionSearch {
   }
 
   /**
-   * Search user prompts using filter-only direct SQLite query.
-   * Vector search is handled by ChromaDB - this only supports filtering without query text.
+   * Search user prompts using direct SQLite query.
+   * Supports both text queries and filter-only queries.
    */
   searchUserPrompts(query: string | undefined, options: SearchOptions = {}): UserPromptSearchResult[] {
     const params: any[] = [];
     const { limit = 20, offset = 0, orderBy = 'relevance', ...filters } = options;
+    const normalizedQuery = query?.trim();
 
     // Build filter conditions (join with sdk_sessions for project filtering)
     const baseConditions: string[] = [];
@@ -518,34 +519,32 @@ export class SessionSearch {
       }
     }
 
-    // FILTER-ONLY PATH: When no query text, query user_prompts table directly
-    if (!query) {
-      if (baseConditions.length === 0) {
-        throw new Error('Either query or filters required for search');
-      }
-
-      const whereClause = `WHERE ${baseConditions.join(' AND ')}`;
-      const orderClause = orderBy === 'date_asc'
-        ? 'ORDER BY up.created_at_epoch ASC'
-        : 'ORDER BY up.created_at_epoch DESC';
-
-      const sql = `
-        SELECT up.*
-        FROM user_prompts up
-        JOIN sdk_sessions s ON up.content_session_id = s.content_session_id
-        ${whereClause}
-        ${orderClause}
-        LIMIT ? OFFSET ?
-      `;
-
-      params.push(limit, offset);
-      return this.db.prepare(sql).all(...params) as UserPromptSearchResult[];
+    // Query text fallback (works even when Chroma prompt vectors are missing)
+    if (normalizedQuery) {
+      baseConditions.push('up.prompt_text LIKE ?');
+      params.push(`%${normalizedQuery}%`);
     }
 
-    // Vector search with query text should be handled by ChromaDB
-    // This method only supports filter-only queries (query=undefined)
-    logger.warn('DB', 'Text search not supported - use ChromaDB for vector search');
-    return [];
+    if (baseConditions.length === 0) {
+      throw new Error('Either query or filters required for search');
+    }
+
+    const whereClause = `WHERE ${baseConditions.join(' AND ')}`;
+    const orderClause = orderBy === 'date_asc'
+      ? 'ORDER BY up.created_at_epoch ASC'
+      : 'ORDER BY up.created_at_epoch DESC';
+
+    const sql = `
+      SELECT up.*
+      FROM user_prompts up
+      JOIN sdk_sessions s ON up.content_session_id = s.content_session_id
+      ${whereClause}
+      ${orderClause}
+      LIMIT ? OFFSET ?
+    `;
+
+    params.push(limit, offset);
+    return this.db.prepare(sql).all(...params) as UserPromptSearchResult[];
   }
 
   /**

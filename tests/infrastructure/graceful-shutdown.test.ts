@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { existsSync, readFileSync } from 'fs';
-import { homedir } from 'os';
 import path from 'path';
 import http from 'http';
 import {
@@ -14,8 +13,9 @@ import {
   type CloseableDatabase,
   type PidInfo
 } from '../../src/services/infrastructure/index.js';
+import { SettingsDefaultsManager } from '../../src/shared/SettingsDefaultsManager.js';
 
-const DATA_DIR = path.join(homedir(), '.claude-mem');
+const DATA_DIR = SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR');
 const PID_FILE = path.join(DATA_DIR, 'worker.pid');
 
 describe('GracefulShutdown', () => {

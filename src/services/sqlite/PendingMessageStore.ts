@@ -78,7 +78,7 @@ export class PendingMessageStore {
 
   /**
    * Atomically claim and DELETE the next pending message.
-   * Finds oldest pending -> returns it -> deletes from queue.
+   * Prioritizes summarize messages, then falls back to FIFO.
    * The queue is a pure buffer: claim it, delete it, process in memory.
    * Uses a transaction to prevent race conditions.
    */
@@ -87,7 +87,12 @@ export class PendingMessageStore {
       const peekStmt = this.db.prepare(`
         SELECT * FROM pending_messages
         WHERE session_db_id = ? AND status = 'pending'
-        ORDER BY id ASC
+        ORDER BY
+          CASE message_type
+            WHEN 'summarize' THEN 0
+            ELSE 1
+          END,
+          id ASC
         LIMIT 1
       `);
       const msg = peekStmt.get(sessionId) as PersistentPendingMessage | null;
@@ -316,6 +321,35 @@ export class PendingMessageStore {
     `);
     const result = stmt.get() as { count: number };
     return result.count > 0;
+  }
+
+  /**
+   * Get total active work count across all sessions (pending + processing).
+   */
+  getTotalActiveCount(): number {
+    const stmt = this.db.prepare(`
+      SELECT COUNT(*) as count FROM pending_messages
+      WHERE status IN ('pending', 'processing')
+    `);
+    const result = stmt.get() as { count: number };
+    return result.count;
+  }
+
+  /**
+   * Get age of the oldest active queue message in milliseconds.
+   * Returns null when no pending/processing messages exist.
+   */
+  getOldestActiveMessageAgeMs(nowEpoch: number = Date.now()): number | null {
+    const stmt = this.db.prepare(`
+      SELECT MIN(created_at_epoch) as oldestCreatedAtEpoch
+      FROM pending_messages
+      WHERE status IN ('pending', 'processing')
+    `);
+    const result = stmt.get() as { oldestCreatedAtEpoch: number | null } | undefined;
+    if (!result || result.oldestCreatedAtEpoch === null) {
+      return null;
+    }
+    return Math.max(0, nowEpoch - result.oldestCreatedAtEpoch);
   }
 
   /**

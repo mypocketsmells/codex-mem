@@ -1,13 +1,25 @@
-<claude-mem-context>
+<codex-mem-context>
 # Recent Activity
 
-### Jan 4, 2026
+### Feb 6, 2026
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #36870 | 1:54 AM | 🟣 | Phase 2 Implementation Completed via Subagent | ~572 |
-| #36866 | 1:53 AM | 🔄 | WMIC Test Refactored to Use Direct Logic Testing | ~533 |
-| #36865 | 1:52 AM | ✅ | WMIC Test File Updated with Improved Mock Implementation | ~370 |
-| #36863 | 1:51 AM | 🟣 | WMIC Parsing Test File Created | ~581 |
-| #36861 | " | 🔵 | Existing ProcessManager Test File Structure Analyzed | ~516 |
-</claude-mem-context>
+| #77 | 11:37 PM | 🔴 | Provider fallback and Gemini retry implemented | ~356 |
+| #72 | " | 🔴 | Fixed provider interoperability and Gemini model retry for HTTP 400/429 failures | ~298 |
+| #118 | 9:41 PM | 🔴 | Fixed provider interoperability and Gemini model retry for HTTP 400/429 failures | ~298 |
+
+### Feb 7, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #612 | 2:46 AM | 🔴 | Resolved log file fallback logic for worker scripts | ~297 |
+| #609 | " | 🔴 | Resolved log file fallback logic for worker scripts | ~290 |
+| #606 | " | 🔴 | Resolved log file fallback logic for worker scripts | ~346 |
+| #603 | " | 🔴 | Resolved log file fallback logic for worker scripts | ~332 |
+| #451 | 2:11 AM | 🔴 | Resolved log file fallback logic for worker scripts | ~312 |
+| #448 | " | 🔴 | Resolved log file fallback logic for worker scripts | ~349 |
+| #445 | " | 🔴 | Resolved log file fallback logic for worker scripts | ~321 |
+| #287 | 2:10 AM | 🔴 | Resolved log file resolution issue in worker scripts | ~310 |
+| #216 | 12:41 AM | 🔴 | Fixed log tail fallback across Codex and legacy dirs | ~247 |
+</codex-mem-context>

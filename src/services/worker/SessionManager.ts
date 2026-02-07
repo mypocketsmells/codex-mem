@@ -343,12 +343,7 @@ export class SessionManager {
    * Get total queue depth across all sessions (for activity indicator)
    */
   getTotalQueueDepth(): number {
-    let total = 0;
-    // We can iterate over active sessions to get their pending count
-    for (const session of this.sessions.values()) {
-      total += this.getPendingStore().getPendingCount(session.sessionDbId);
-    }
-    return total;
+    return this.getPendingStore().getTotalActiveCount();
   }
 
   /**
@@ -358,6 +353,29 @@ export class SessionManager {
   getTotalActiveWork(): number {
     // getPendingCount includes 'processing' status, so this IS the total active work
     return this.getTotalQueueDepth();
+  }
+
+  /**
+   * Get age of oldest active queue item (pending or processing) in milliseconds.
+   */
+  getOldestActiveWorkAgeMs(): number | null {
+    return this.getPendingStore().getOldestActiveMessageAgeMs();
+  }
+
+  /**
+   * Get currently active providers for sessions with queued/processing work.
+   */
+  getActiveProviders(): Array<'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama'> {
+    const activeProviders = new Set<'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama'>();
+
+    for (const session of this.sessions.values()) {
+      const queueDepth = this.getPendingStore().getPendingCount(session.sessionDbId);
+      if (queueDepth > 0 && session.currentProvider) {
+        activeProviders.add(session.currentProvider);
+      }
+    }
+
+    return Array.from(activeProviders);
   }
 
   /**

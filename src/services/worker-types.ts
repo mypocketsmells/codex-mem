@@ -10,7 +10,7 @@ import type { Response } from 'express';
 
 /**
  * Provider-agnostic conversation message for shared history
- * Used to maintain context across Claude↔Gemini provider switches
+ * Used to maintain context across provider switches
  */
 export interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -32,7 +32,7 @@ export interface ActiveSession {
   cumulativeOutputTokens: number;  // Track output tokens for discovery cost
   earliestPendingTimestamp: number | null;  // Original timestamp of earliest pending message (for accurate observation timestamps)
   conversationHistory: ConversationMessage[];  // Shared conversation history for provider switching
-  currentProvider: 'claude' | 'gemini' | 'openrouter' | null;  // Track which provider is currently running
+  currentProvider: 'codex' | 'claude' | 'gemini' | 'openrouter' | 'ollama' | null;  // Track which provider is currently running
 }
 
 export interface PendingMessage {
