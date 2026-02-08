@@ -871,7 +871,7 @@
                 - text: Gemini API Key
                 - generic "Your Google AI Studio API key (or set GEMINI_API_KEY env var)" [ref=e7234]:
                   - img [ref=e7235]
-              - textbox "Enter Gemini API key..." [ref=e7238]: AIzaSyC5DYcj9wc3HXB0W6QZ_6CRkwpiDov2bmE
+              - textbox "Enter Gemini API key..." [ref=e7238]: <REDACTED_GEMINI_API_KEY>
             - generic [ref=e7239]:
               - generic [ref=e7240]:
                 - text: Gemini Model

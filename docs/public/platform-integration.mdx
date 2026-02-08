@@ -1517,7 +1517,7 @@ Workers process observations/summaries asynchronously. Results appear in the dat
 Always wrap sensitive content in `<private>` tags to prevent storage:
 
 ```typescript
-const userMessage = '<private>API key: sk-1234567890</private>';
+const userMessage = '<private>API key: <YOUR_API_KEY></private>';
 // This observation will be skipped (entire prompt is private)
 ```
 </Info>

@@ -365,7 +365,7 @@ unset ANTHROPIC_API_KEY
 claude  # Start Claude Code with plugin
 
 # Test 2: With API key (should show warning)
-export ANTHROPIC_API_KEY="sk-test-key"
+export ANTHROPIC_API_KEY="<YOUR_ANTHROPIC_API_KEY>"
 claude  # Should display warning
 
 # Test 3: Explicit opt-in
