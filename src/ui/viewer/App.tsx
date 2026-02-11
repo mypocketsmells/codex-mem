@@ -33,7 +33,7 @@ export function App() {
   } = useSSE();
   const { settings, saveSettings, isSaving, saveStatus } = useSettings();
   const { stats, refreshStats } = useStats();
-  const { preference, resolvedTheme, setThemePreference } = useTheme();
+  const { preference, setThemePreference } = useTheme();
   const { projectDiagnostics } = useProjectDiagnostics();
   const pagination = usePagination(currentFilter);
 

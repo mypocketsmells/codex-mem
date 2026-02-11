@@ -65,6 +65,8 @@ export interface SettingsDefaults {
 }
 
 export class SettingsDefaultsManager {
+  private static readonly warnedDeprecationKeys = new Set<string>();
+
   /**
    * Default values for all settings
    */
@@ -150,6 +152,13 @@ export class SettingsDefaultsManager {
   }
 
   /**
+   * Test helper to reset deprecation warning state between test cases.
+   */
+  static resetDeprecationWarningsForTests(): void {
+    this.warnedDeprecationKeys.clear();
+  }
+
+  /**
    * Load settings from file with fallback to defaults
    * Returns merged settings with defaults as fallback
    * Handles all errors (missing file, corrupted JSON, permissions) by returning defaults
@@ -217,6 +226,11 @@ export class SettingsDefaultsManager {
       const legacyValue = process.env[key];
       if (legacyValue !== undefined) {
         merged[key] = legacyValue;
+
+        if (key.startsWith('CLAUDE_MEM_')) {
+          const codexKey = `CODEX_MEM_${key.slice('CLAUDE_MEM_'.length)}`;
+          this.warnLegacyEnvKeyOnce(key, codexKey);
+        }
       }
 
       if (key.startsWith('CLAUDE_MEM_')) {
@@ -228,11 +242,28 @@ export class SettingsDefaultsManager {
       }
     }
 
+    if (process.env.CLAUDE_CODE_PATH !== undefined) {
+      this.warnLegacyEnvKeyOnce('CLAUDE_CODE_PATH', 'CODEX_CODE_PATH');
+    }
+
     // Optional compatibility alias for CLI path naming.
-    if (process.env.CODEX_CODE_PATH && !process.env.CLAUDE_CODE_PATH) {
+    // Canonical CODEX_CODE_PATH takes precedence when present.
+    if (process.env.CODEX_CODE_PATH !== undefined) {
       merged.CLAUDE_CODE_PATH = process.env.CODEX_CODE_PATH;
     }
 
     return merged;
+  }
+
+  private static warnLegacyEnvKeyOnce(legacyKey: string, canonicalKey: string): void {
+    if (this.warnedDeprecationKeys.has(legacyKey)) {
+      return;
+    }
+
+    this.warnedDeprecationKeys.add(legacyKey);
+    console.warn(
+      `[SETTINGS] Deprecated environment key ${legacyKey} detected. ` +
+      `Use ${canonicalKey} instead. Legacy keys remain supported for now.`
+    );
   }
 }

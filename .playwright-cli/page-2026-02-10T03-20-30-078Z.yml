@@ -1,0 +1,31 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "5 codex-mem" [level=1] [ref=e4]:
+      - generic [ref=e6]: "5"
+      - generic [ref=e7]: codex-mem
+    - generic [ref=e8]:
+      - generic "Queue has been active for a while. Open Console for detailed retries and provider logs." [ref=e9]: Processing active provider for 75s
+      - generic "Found 1 Codex project(s) in session transcripts that are not ingested yet" [ref=e10]: 1 project discovered, not yet ingested
+      - combobox [ref=e11] [cursor=pointer]:
+        - option "All Projects" [selected]
+        - option "codex-mem"
+        - option "observer-sessions"
+        - option "OOP"
+        - option "SaaS"
+        - option "crypto shit"
+        - option "claude-mem"
+        - option "Dominos folder"
+        - option "repro-live-yes-1770411966"
+        - option "repro-claude-no-dup-1770411956"
+        - option "repro-live-fix-1770411700"
+        - option "repro-main-miss-1770411422"
+        - option "project-no-output-live-1770380520"
+        - option "codex-mem-provider-smoke"
+        - option "codex-mem-provider-smoke-gpt5"
+      - 'button "Theme: System (click for Light)" [ref=e12] [cursor=pointer]':
+        - img [ref=e13]
+      - button "Settings" [ref=e15] [cursor=pointer]:
+        - img [ref=e16]
+  - generic [ref=e21]: Loading more...
+  - button "Toggle Console" [ref=e23] [cursor=pointer]:
+    - img [ref=e24]

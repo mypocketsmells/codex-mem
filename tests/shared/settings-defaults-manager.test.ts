@@ -11,7 +11,7 @@
  * 4. Directory doesn't exist - should create directory and file
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -41,6 +41,8 @@ describe('SettingsDefaultsManager', () => {
       originalEnv[key] = process.env[key];
       delete process.env[key];
     }
+
+    SettingsDefaultsManager.resetDeprecationWarningsForTests();
   });
 
   afterEach(() => {
@@ -327,6 +329,53 @@ describe('SettingsDefaultsManager', () => {
         const result = SettingsDefaultsManager.loadFromFile(settingsPath);
 
         expect(result.CLAUDE_CODE_PATH).toBe('/usr/local/bin/codex');
+      });
+
+      it('should prefer CODEX_CODE_PATH over CLAUDE_CODE_PATH when both are set', () => {
+        process.env.CLAUDE_CODE_PATH = '/usr/local/bin/claude';
+        process.env.CODEX_CODE_PATH = '/usr/local/bin/codex';
+
+        const result = SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        expect(result.CLAUDE_CODE_PATH).toBe('/usr/local/bin/codex');
+      });
+
+      it('should warn when legacy CLAUDE_MEM_* env keys are used', () => {
+        const warnSpy = spyOn(console, 'warn').mockImplementation(() => {});
+        process.env.CLAUDE_MEM_MODEL = 'legacy-model';
+
+        SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        const warningIncludesLegacyKey = warnSpy.mock.calls.some((callArgs) =>
+          String(callArgs[0]).includes('CLAUDE_MEM_MODEL')
+        );
+        expect(warningIncludesLegacyKey).toBe(true);
+        warnSpy.mockRestore();
+      });
+
+      it('should warn when CLAUDE_CODE_PATH is used', () => {
+        const warnSpy = spyOn(console, 'warn').mockImplementation(() => {});
+        process.env.CLAUDE_CODE_PATH = '/usr/local/bin/claude';
+
+        SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        const warningIncludesLegacyCodePath = warnSpy.mock.calls.some((callArgs) =>
+          String(callArgs[0]).includes('CLAUDE_CODE_PATH')
+        );
+        expect(warningIncludesLegacyCodePath).toBe(true);
+        warnSpy.mockRestore();
+      });
+
+      it('should not warn when only CODEX_MEM_* canonical keys are used', () => {
+        const warnSpy = spyOn(console, 'warn').mockImplementation(() => {});
+        process.env.CODEX_MEM_MODEL = 'canonical-model';
+        process.env.CODEX_MEM_WORKER_PORT = '49999';
+        process.env.CODEX_CODE_PATH = '/usr/local/bin/codex';
+
+        SettingsDefaultsManager.loadFromFile(settingsPath);
+
+        expect(warnSpy.mock.calls.length).toBe(0);
+        warnSpy.mockRestore();
       });
     });
   });

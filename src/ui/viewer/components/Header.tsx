@@ -47,7 +47,7 @@ export function Header({
     <div className="header">
       <h1>
         <div style={{ position: 'relative', display: 'inline-block' }}>
-          <img src="claude-mem-logomark.webp" alt="" className={`logomark ${isProcessing ? 'spinning' : ''}`} />
+          <img src="codex-mem-logomark.png" alt="" className={`logomark ${isProcessing ? 'spinning' : ''}`} />
           {queueDepth > 0 && (
             <div className="queue-bubble">
               {queueDepth}

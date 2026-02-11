@@ -5,8 +5,8 @@
   "theme": "mint",
   "favicon": "/codex-mem-logomark.webp",
   "logo": {
-    "light": "/claude-mem-logo-for-light-mode.webp",
-    "dark": "/claude-mem-logo-for-dark-mode.webp",
+    "light": "/codex-mem-logo-for-light-mode.webp",
+    "dark": "/codex-mem-logo-for-dark-mode.webp",
     "href": "https://github.com/thedotmack/codex-mem"
   },
   "colors": {
@@ -127,7 +127,10 @@
     "metatags": {
       "og:type": "website",
       "og:site_name": "Codex-Mem Documentation",
-      "og:description": "Persistent memory compression system that preserves context across Codex and Claude-style sessions"
+      "og:description": "Persistent memory compression system that preserves context across Codex and Claude-style sessions",
+      "og:image": "https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/codex-mem-social-card.png",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://raw.githubusercontent.com/thedotmack/codex-mem/main/docs/public/codex-mem-social-card.png"
     }
   },
   "contextual": {

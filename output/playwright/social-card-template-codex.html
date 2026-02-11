@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: dark; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(255,111,0,0.24), transparent 32%),
+        radial-gradient(circle at 85% 80%, rgba(255,153,51,0.22), transparent 30%),
+        linear-gradient(140deg, #080a10 0%, #0b111d 52%, #14171f 100%);
+      color: #f3f4f6;
+    }
+    .frame {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .wordmark {
+      width: 640px;
+      height: auto;
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.35));
+    }
+    .title {
+      margin: 0;
+      font-size: 72px;
+      line-height: 0.96;
+      font-weight: 800;
+      letter-spacing: -1.2px;
+      max-width: 1080px;
+    }
+    .subtitle {
+      margin: 18px 0 0;
+      font-size: 30px;
+      color: #cfd3da;
+      font-weight: 500;
+      letter-spacing: 0.1px;
+    }
+    .brand-note {
+      margin-top: 8px;
+      font-size: 16px;
+      color: #9ca3af;
+      letter-spacing: 0.2px;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 24px;
+      color: #b6bac2;
+      border-top: 1px solid rgba(255,255,255,0.16);
+      padding-top: 18px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #ff6f00;
+      display: inline-block;
+      margin: 0 12px;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div>
+      <img class="wordmark" src="/src/ui/codex-mem-logo-for-dark-mode.png" alt="codex-mem logo" />
+    </div>
+
+    <div>
+      <h1 class="title">Persistent Memory For Coding Agents</h1>
+      <p class="subtitle">Context continuity across sessions for Codex and Claude-style coding workflows.</p>
+      <p class="brand-note">codex-mem open-source memory layer</p>
+    </div>
+
+    <div class="footer">
+      <div>codex-mem.ai</div>
+      <div>
+        Search <span class="dot"></span> Timeline <span class="dot"></span> Observations
+      </div>
+    </div>
+  </div>
+</body>
+</html>

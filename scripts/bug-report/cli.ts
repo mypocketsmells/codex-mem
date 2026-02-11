@@ -10,6 +10,9 @@ import { exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
+const CANONICAL_GITHUB_REPOSITORY = "https://github.com/thedotmack/codex-mem";
+const LEGACY_GITHUB_REPOSITORY_ENV_KEY = "CLAUDE_MEM_GITHUB_REPO";
+const CANONICAL_GITHUB_REPOSITORY_ENV_KEY = "CODEX_MEM_GITHUB_REPO";
 
 interface CliArgs {
   output?: string;
@@ -50,9 +53,32 @@ function parseArgs(): CliArgs {
   return parsed;
 }
 
+function normalizeRepositoryUrl(repositoryUrl: string): string {
+  return repositoryUrl.trim().replace(/\/+$/, "");
+}
+
+function resolveGithubRepositoryUrl(): string {
+  const canonicalRepositoryOverride =
+    process.env[CANONICAL_GITHUB_REPOSITORY_ENV_KEY];
+  if (canonicalRepositoryOverride) {
+    return normalizeRepositoryUrl(canonicalRepositoryOverride);
+  }
+
+  const legacyRepositoryOverride = process.env[LEGACY_GITHUB_REPOSITORY_ENV_KEY];
+  if (legacyRepositoryOverride) {
+    console.warn(
+      `[bug-report] ${LEGACY_GITHUB_REPOSITORY_ENV_KEY} is deprecated. ` +
+      `Use ${CANONICAL_GITHUB_REPOSITORY_ENV_KEY} instead.`
+    );
+    return normalizeRepositoryUrl(legacyRepositoryOverride);
+  }
+
+  return CANONICAL_GITHUB_REPOSITORY;
+}
+
 function printHelp(): void {
   console.log(`
-bug-report - Generate bug reports for claude-mem
+bug-report - Generate bug reports for codex-mem
 
 USAGE:
   npm run bug-report [options]
@@ -65,7 +91,7 @@ OPTIONS:
 
 DESCRIPTION:
   This script collects system diagnostics, prompts you for issue details,
-  and generates a formatted GitHub issue for claude-mem using the Claude Agent SDK.
+  and generates a formatted GitHub issue for codex-mem using the Claude Agent SDK.
 
   The generated report will be saved to ~/bug-report-YYYY-MM-DD-HHMMSS.md
   and displayed in your terminal for easy copy-pasting to GitHub.
@@ -156,7 +182,7 @@ async function main() {
 
   // Show summary
   console.log("📋 System Summary:");
-  console.log(`   Claude-mem: v${diagnostics.versions.claudeMem}`);
+  console.log(`   Codex-Mem: v${diagnostics.versions.codexMem}`);
   console.log(`   Claude Code: ${diagnostics.versions.claudeCode}`);
   console.log(
     `   Platform: ${diagnostics.platform.osVersion} (${diagnostics.platform.arch})`
@@ -236,7 +262,8 @@ async function main() {
   // Build GitHub URL with pre-filled title and body
   const encodedTitle = encodeURIComponent(result.title);
   const encodedBody = encodeURIComponent(result.body);
-  const githubUrl = `https://github.com/thedotmack/claude-mem/issues/new?title=${encodedTitle}&body=${encodedBody}`;
+  const githubRepositoryUrl = resolveGithubRepositoryUrl();
+  const githubUrl = `${githubRepositoryUrl}/issues/new?title=${encodedTitle}&body=${encodedBody}`;
 
   // Display the report
   console.log("─".repeat(60));

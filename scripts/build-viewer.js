@@ -68,11 +68,44 @@ async function buildViewer() {
       );
     }
 
+    // Copy branding assets (logos, favicons, social card, manifest)
+    const brandingFiles = [
+      'codex-mem-logo-for-light-mode.webp',
+      'codex-mem-logo-for-dark-mode.webp',
+      'codex-mem-logomark.webp',
+      'codex-mem-logo-for-light-mode.png',
+      'codex-mem-logo-for-dark-mode.png',
+      'codex-mem-logomark.png',
+      'codex-mem-logo-safe-on-light.png',
+      'codex-mem-logo-safe-on-dark.png',
+      'codex-mem-logomark-safe-on-light.png',
+      'codex-mem-logomark-safe-on-dark.png',
+      'codex-mem-social-card.png',
+      'codex-mem-logo-trace.svg',
+      'codex-mem-logomark-trace.svg',
+      'favicon.ico',
+      'favicon-16x16.png',
+      'favicon-32x32.png',
+      'apple-touch-icon.png',
+      'android-chrome-192x192.png',
+      'android-chrome-512x512.png',
+      'site.webmanifest'
+    ];
+
+    let copiedBrandingCount = 0;
+    for (const file of brandingFiles) {
+      const sourcePath = path.join(srcUiDir, file);
+      if (!fs.existsSync(sourcePath)) continue;
+      fs.copyFileSync(sourcePath, path.join(outputUiDir, file));
+      copiedBrandingCount += 1;
+    }
+
     console.log('✓ React viewer built successfully');
     console.log('  - plugin/ui/viewer-bundle.js');
     console.log('  - plugin/ui/viewer.html (from viewer-template.html)');
     console.log('  - plugin/ui/assets/fonts/* (font files)');
     console.log(`  - plugin/ui/icon-thick-*.svg (${iconFiles.length} icon files)`);
+    console.log(`  - plugin/ui/branding assets (${copiedBrandingCount} files)`);
   } catch (error) {
     console.error('Failed to build viewer:', error);
     process.exit(1);

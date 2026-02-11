@@ -1,6 +1,6 @@
 # Codex-Mem Migration TODO
 
-Last updated: 2026-02-06
+Last updated: 2026-02-09
 
 ## Goal
 
@@ -58,11 +58,12 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
   - `docs/context/**/*.md`
   - `cursor-hooks/**/*.md`
   - `docs/i18n/**/*.md`
-  - Note: retained `claude-mem-logo-*.webp` asset filenames intentionally until logo asset rename is finalized.
+  - Note: switched docs/runtime references to `codex-mem-logo-*.webp`; legacy `claude-mem-logo-*.webp` files are retained as compatibility aliases.
 - [ ] Decide docs domain strategy:
   - Keep `docs.claude-mem.ai` short-term, or
   - Migrate to `docs.codex-mem.ai` and add redirects.
-- [ ] Update badges, social links, and any external references in README/docs.
+- [x] Update badges, social links, and any external references in README/docs.
+  - Completed: swapped static version badges for dynamic package-version badges and updated logo asset links in README/docs to canonical `codex-mem` filenames.
 
 ### 3) Built Artifacts + Generated Files
 
@@ -155,8 +156,8 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 ### 12) UI/Viewer Surface
 
 - [x] Rename viewer labels/headings from Claude-Mem to Codex-Mem.
-- [ ] Verify logos/assets naming strategy:
-  - keep existing file names initially or rename assets and references.
+- [x] Verify logos/assets naming strategy:
+  - Chosen strategy: canonicalize runtime/docs references to `codex-mem` asset names and keep legacy `claude-mem` files as compatibility aliases.
 - [x] Validate SSE/event UI still functions after rename.
 
 ## Testing Scope (Required)
@@ -179,15 +180,19 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 - [x] Existing Claude plugin install upgrade path.
 - [x] Cursor integration path + context file updates.
 - [ ] Windows/macOS/Linux worker lifecycle and startup.
+  - Progress (2026-02-09): automated cross-platform lifecycle suite passed (`process-manager`, `health-monitor`, `wmic-parsing`, `graceful-shutdown`, `worker-json-status`).
+  - Remaining: manual startup/lifecycle verification on real Windows and Linux hosts.
 
 ## Release and Backward Compatibility Scope (Required)
 
 ### 15) Compatibility Plan
 
-- [ ] Support old repo/package references for transition period.
-- [ ] Preserve existing user data without forced destructive migration.
-- [ ] Ship clear deprecation warnings for old names/keys.
-- [ ] Provide rollback instructions.
+- [x] Support old repo/package references for transition period.
+  - Completed: `scripts/bug-report` now defaults to `thedotmack/codex-mem` and accepts legacy `CLAUDE_MEM_GITHUB_REPO` override with canonical `CODEX_MEM_GITHUB_REPO` support.
+- [x] Preserve existing user data without forced destructive migration.
+- [x] Ship clear deprecation warnings for old names/keys.
+  - Completed: settings loader now warns when legacy `CLAUDE_MEM_*` keys or `CLAUDE_CODE_PATH` are used, while preserving compatibility behavior.
+- [x] Provide rollback instructions.
 
 ### 16) Release Tasks
 
@@ -202,5 +207,4 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 
 1. Run remaining manual validation matrix row for cross-platform lifecycle (Windows/macOS/Linux).
 2. Decide docs domain + redirects (`docs.codex-mem.ai` strategy).
-3. Decide logo asset rename strategy (`claude-mem-logo-*.webp` -> `codex-mem-logo-*.webp`) and update references atomically.
-4. Finalize compatibility/deprecation timeline for legacy aliases/keys.
+3. Finalize compatibility/deprecation timeline for legacy aliases/keys.

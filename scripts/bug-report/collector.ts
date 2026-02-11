@@ -3,12 +3,17 @@ import * as path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as os from "os";
+import { existsSync } from "fs";
+import {
+  getCanonicalDataDirPath,
+  getLegacyDataDirPath,
+} from "../../src/shared/product-config.ts";
 
 const execAsync = promisify(exec);
 
 export interface SystemDiagnostics {
   versions: {
-    claudeMem: string;
+    codexMem: string;
     claudeCode: string;
     node: string;
     bun: string;
@@ -59,7 +64,7 @@ function sanitizePath(filePath: string): string {
   return filePath.replace(homeDir, "~");
 }
 
-async function getClaudememVersion(): Promise<string> {
+async function getCodexMemVersion(): Promise<string> {
   try {
     const packageJsonPath = path.join(process.cwd(), "package.json");
     const content = await fs.readFile(packageJsonPath, "utf-8");
@@ -68,6 +73,30 @@ async function getClaudememVersion(): Promise<string> {
   } catch (error) {
     return "unknown";
   }
+}
+
+function resolveDataDirectoryPath(): string {
+  const canonicalDataDir = process.env.CODEX_MEM_DATA_DIR?.trim();
+  if (canonicalDataDir) {
+    return canonicalDataDir;
+  }
+
+  const legacyDataDir = process.env.CLAUDE_MEM_DATA_DIR?.trim();
+  if (legacyDataDir) {
+    return legacyDataDir;
+  }
+
+  const canonicalDefaultDir = getCanonicalDataDirPath();
+  if (existsSync(canonicalDefaultDir)) {
+    return canonicalDefaultDir;
+  }
+
+  const legacyDefaultDir = getLegacyDataDirPath();
+  if (existsSync(legacyDefaultDir)) {
+    return legacyDefaultDir;
+  }
+
+  return canonicalDefaultDir;
 }
 
 async function getClaudeCodeVersion(): Promise<string> {
@@ -107,14 +136,22 @@ async function getOsVersion(): Promise<string> {
 }
 
 async function checkWorkerHealth(port: number): Promise<any> {
-  try {
-    const response = await fetch(`http://127.0.0.1:${port}/health`, {
-      signal: AbortSignal.timeout(2000),
-    });
-    return await response.json();
-  } catch (error) {
-    return null;
+  const healthEndpoints = [`/api/health`, `/health`];
+
+  for (const endpoint of healthEndpoints) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}${endpoint}`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch {
+      // Try the next endpoint.
+    }
   }
+
+  return null;
 }
 
 async function getWorkerStats(port: number): Promise<any> {
@@ -163,21 +200,29 @@ async function getSettings(
 
 async function getDatabaseInfo(
   dataDir: string
-): Promise<{ exists: boolean; size?: number }> {
-  try {
-    const dbPath = path.join(dataDir, "claude-mem.db");
-    const stats = await fs.stat(dbPath);
-    return { exists: true, size: stats.size };
-  } catch (error) {
-    return { exists: false };
+): Promise<{ path: string; exists: boolean; size?: number }> {
+  const databasePathCandidates = [
+    path.join(dataDir, "codex-mem.db"),
+    path.join(dataDir, "claude-mem.db"),
+  ];
+
+  for (const databasePathCandidate of databasePathCandidates) {
+    try {
+      const stats = await fs.stat(databasePathCandidate);
+      return { path: databasePathCandidate, exists: true, size: stats.size };
+    } catch {
+      // Try the next candidate.
+    }
   }
+
+  return { path: databasePathCandidates[0], exists: false };
 }
 
 export async function collectDiagnostics(
   options: { includeLogs?: boolean } = {}
 ): Promise<SystemDiagnostics> {
   const homeDir = os.homedir();
-  const dataDir = path.join(homeDir, ".claude-mem");
+  const dataDir = resolveDataDirectoryPath();
   const pluginPath = path.join(
     homeDir,
     ".claude",
@@ -186,18 +231,20 @@ export async function collectDiagnostics(
     "thedotmack"
   );
   const cwd = process.cwd();
-  const isDevMode = cwd.includes("claude-mem") && !cwd.includes(".claude");
+  const isDevMode =
+    (cwd.includes("codex-mem") || cwd.includes("claude-mem")) &&
+    !cwd.includes(".claude");
 
   // Collect version information
-  const [claudeMem, claudeCode, bun, osVersion] = await Promise.all([
-    getClaudememVersion(),
+  const [codexMem, claudeCode, bun, osVersion] = await Promise.all([
+    getCodexMemVersion(),
     getClaudeCodeVersion(),
     getBunVersion(),
     getOsVersion(),
   ]);
 
   const versions = {
-    claudeMem,
+    codexMem,
     claudeCode,
     node: process.version,
     bun,
@@ -241,7 +288,15 @@ export async function collectDiagnostics(
 
   if (options.includeLogs !== false) {
     const today = new Date().toISOString().split("T")[0];
-    const workerLogPath = path.join(dataDir, "logs", `worker-${today}.log`);
+    const workerLogPathCandidates = [
+      path.join(dataDir, "logs", `codex-mem-${today}.log`),
+      path.join(dataDir, "logs", `claude-mem-${today}.log`),
+      path.join(dataDir, "logs", `worker-${today}.log`),
+    ];
+    const workerLogPath =
+      workerLogPathCandidates.find((workerLogPathCandidate) =>
+        existsSync(workerLogPathCandidate)
+      ) || workerLogPathCandidates[0];
     const silentLogPath = path.join(dataDir, "silent.log");
 
     [workerLog, silentLog] = await Promise.all([
@@ -258,7 +313,7 @@ export async function collectDiagnostics(
   // Database info
   const dbInfo = await getDatabaseInfo(dataDir);
   const database = {
-    path: sanitizePath(path.join(dataDir, "claude-mem.db")),
+    path: sanitizePath(dbInfo.path),
     exists: dbInfo.exists,
     size: dbInfo.size,
     // TODO: Add table counts if we want to query the database
@@ -287,7 +342,7 @@ export function formatDiagnostics(diagnostics: SystemDiagnostics): string {
   let output = "";
 
   output += "## Environment\n\n";
-  output += `- **Claude-mem**: ${diagnostics.versions.claudeMem}\n`;
+  output += `- **Codex-Mem**: ${diagnostics.versions.codexMem}\n`;
   output += `- **Claude Code**: ${diagnostics.versions.claudeCode}\n`;
   output += `- **Node.js**: ${diagnostics.versions.node}\n`;
   output += `- **Bun**: ${diagnostics.versions.bun}\n`;

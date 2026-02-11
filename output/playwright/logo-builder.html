@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+    .canvas {
+      width: 3196px;
+      height: 581px;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      padding: 0 24px;
+      gap: 70px;
+      background: var(--background);
+    }
+    .logomark {
+      width: 520px;
+      height: 520px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    .word {
+      font-family: "Bradley Hand", "Snell Roundhand", "Segoe Script", "Apple Chancery", cursive;
+      font-size: 290px;
+      line-height: 1;
+      letter-spacing: 4px;
+      color: var(--foreground);
+      white-space: nowrap;
+      transform: translateY(-4px);
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas" class="canvas">
+    <img class="logomark" src="/src/ui/codex-mem-logomark.png" alt="codex-mem logomark" />
+    <div class="word">codex-mem</div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const theme = params.get('theme') === 'dark' ? 'dark' : 'light';
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.style.setProperty('--background', '#04070c');
+      root.style.setProperty('--foreground', '#e6e7ea');
+    } else {
+      root.style.setProperty('--background', '#eeeeef');
+      root.style.setProperty('--foreground', '#0f1116');
+    }
+  </script>
+</body>
+</html>

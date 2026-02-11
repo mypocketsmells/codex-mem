@@ -62,6 +62,15 @@ Examples:
 
 During transition, legacy keys remain accepted for compatibility.
 
+Deprecation behavior:
+- Using `CLAUDE_MEM_*` keys now emits a warning at runtime.
+- Prefer `CODEX_MEM_*` keys in shell config and CI.
+
+GitHub issue helper compatibility:
+- `scripts/bug-report` defaults to `https://github.com/thedotmack/codex-mem`.
+- Legacy env override `CLAUDE_MEM_GITHUB_REPO` is still supported (with a warning).
+- Canonical override key is `CODEX_MEM_GITHUB_REPO`.
+
 ## MCP/Integration Naming
 
 - MCP server key should be `codex-mem`.
