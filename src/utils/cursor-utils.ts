@@ -5,15 +5,13 @@
  * Designed for testability - all file paths are passed as parameters.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, unlinkSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
 import { join, basename, dirname } from 'path';
 import { logger } from './logger.js';
-import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from '../shared/product-config.js';
+import { CANONICAL_PRODUCT_NAME } from '../shared/product-config.js';
 
 const CANONICAL_CONTEXT_RULE_FILE = `${CANONICAL_PRODUCT_NAME}-context.mdc`;
-const LEGACY_CONTEXT_RULE_FILE = `${LEGACY_PRODUCT_NAME}-context.mdc`;
 const CANONICAL_MCP_SERVER_NAME = CANONICAL_PRODUCT_NAME;
-const LEGACY_MCP_SERVER_NAME = LEGACY_PRODUCT_NAME;
 
 // ============================================================================
 // Types
@@ -103,18 +101,9 @@ export function unregisterCursorProject(registryFile: string, projectName: strin
 export function writeContextFile(workspacePath: string, context: string): void {
   const rulesDir = join(workspacePath, '.cursor', 'rules');
   const canonicalRulesFile = join(rulesDir, CANONICAL_CONTEXT_RULE_FILE);
-  const legacyRulesFile = join(rulesDir, LEGACY_CONTEXT_RULE_FILE);
   const tempFile = `${canonicalRulesFile}.tmp`;
 
   mkdirSync(rulesDir, { recursive: true });
-
-  // Migrate old context file naming to canonical.
-  if (existsSync(legacyRulesFile) && !existsSync(canonicalRulesFile)) {
-    renameSync(legacyRulesFile, canonicalRulesFile);
-  } else if (existsSync(legacyRulesFile) && existsSync(canonicalRulesFile)) {
-    // Avoid duplicated Cursor rules if both legacy and canonical files exist.
-    unlinkSync(legacyRulesFile);
-  }
 
   const content = `---
 alwaysApply: true
@@ -142,13 +131,9 @@ ${context}
 export function readContextFile(workspacePath: string): string | null {
   const rulesDir = join(workspacePath, '.cursor', 'rules');
   const canonicalRulesFile = join(rulesDir, CANONICAL_CONTEXT_RULE_FILE);
-  const legacyRulesFile = join(rulesDir, LEGACY_CONTEXT_RULE_FILE);
 
   if (existsSync(canonicalRulesFile)) {
     return readFileSync(canonicalRulesFile, 'utf-8');
-  }
-  if (existsSync(legacyRulesFile)) {
-    return readFileSync(legacyRulesFile, 'utf-8');
   }
   return null;
 }
@@ -182,17 +167,11 @@ export function configureCursorMcp(mcpJsonPath: string, mcpServerScriptPath: str
     }
   }
 
-  // Migrate legacy key if present.
-  if (config.mcpServers[LEGACY_MCP_SERVER_NAME] && !config.mcpServers[CANONICAL_MCP_SERVER_NAME]) {
-    config.mcpServers[CANONICAL_MCP_SERVER_NAME] = config.mcpServers[LEGACY_MCP_SERVER_NAME];
-  }
-
   // Add canonical codex-mem MCP server
   config.mcpServers[CANONICAL_MCP_SERVER_NAME] = {
     command: 'node',
     args: [mcpServerScriptPath]
   };
-  delete config.mcpServers[LEGACY_MCP_SERVER_NAME];
 
   writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2));
 }
@@ -208,7 +187,6 @@ export function removeMcpConfig(mcpJsonPath: string): void {
     const config: CursorMcpConfig = JSON.parse(readFileSync(mcpJsonPath, 'utf-8'));
     if (config.mcpServers) {
       delete config.mcpServers[CANONICAL_MCP_SERVER_NAME];
-      delete config.mcpServers[LEGACY_MCP_SERVER_NAME];
       writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2));
     }
   } catch (e) {

@@ -1,5 +1,6 @@
 import { Database } from 'bun:sqlite';
-import { DATA_DIR, DB_PATH, ensureDir } from '../../shared/paths.js';
+import { dirname } from 'path';
+import { DB_PATH, ensureDir } from '../../shared/paths.js';
 import { logger } from '../../utils/logger.js';
 import { MigrationRunner } from './migrations/runner.js';
 
@@ -32,7 +33,7 @@ export class ClaudeMemDatabase {
   constructor(dbPath: string = DB_PATH) {
     // Ensure data directory exists (skip for in-memory databases)
     if (dbPath !== ':memory:') {
-      ensureDir(DATA_DIR);
+      ensureDir(dirname(dbPath));
     }
 
     // Create database connection
@@ -93,7 +94,7 @@ export class DatabaseManager {
     }
 
     // Ensure the data directory exists
-    ensureDir(DATA_DIR);
+    ensureDir(dirname(DB_PATH));
 
     this.db = new Database(DB_PATH, { create: true, readwrite: true });
 

@@ -16,6 +16,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { getWorkerPort, getWorkerHost } from '../shared/worker-utils.js';
 import { SettingsDefaultsManager } from '../shared/SettingsDefaultsManager.js';
 import { USER_SETTINGS_PATH } from '../shared/paths.js';
+import { getProjectRoot } from '../shared/product-config.js';
 import { normalizeProviderFallbackPolicy } from '../shared/provider-fallback-policy.js';
 import { logger } from '../utils/logger.js';
 
@@ -331,6 +332,7 @@ export class WorkerService {
   async start(): Promise<void> {
     const port = getWorkerPort();
     const host = getWorkerHost();
+    const workspaceRoot = getProjectRoot();
 
     // Start HTTP server FIRST - make port available immediately
     await this.server.listen(port, host);
@@ -341,10 +343,11 @@ export class WorkerService {
     writePidFile({
       pid: process.pid,
       port,
-      startedAt: new Date().toISOString()
+      startedAt: new Date().toISOString(),
+      workspaceRoot,
     });
 
-    logger.info('SYSTEM', 'Worker started', { host, port, pid: process.pid });
+    logger.info('SYSTEM', 'Worker started', { host, port, pid: process.pid, workspaceRoot });
 
     // Do slow initialization in background (non-blocking)
     this.initializeBackground().catch((error) => {
@@ -634,25 +637,61 @@ export class WorkerService {
  * @returns true if worker is healthy (existing or newly started), false on failure
  */
 async function ensureWorkerStarted(port: number): Promise<boolean> {
+  const currentWorkspaceRoot = getProjectRoot();
+
   // Check if worker is already running and healthy
   if (await waitForHealth(port, 1000)) {
-    const versionCheck = await checkVersionMatch(port);
-    if (!versionCheck.matches) {
-      logger.info('SYSTEM', 'Worker version mismatch detected - auto-restarting', {
-        pluginVersion: versionCheck.pluginVersion,
-        workerVersion: versionCheck.workerVersion
+    const pidInfo = readPidFile();
+    const runningWorkspaceRoot = pidInfo?.workspaceRoot;
+
+    if (pidInfo && !runningWorkspaceRoot) {
+      logger.info('SYSTEM', 'Worker PID metadata missing workspace root, restarting for project-local DB isolation', {
+        currentWorkspaceRoot
       });
 
       await httpShutdown(port);
       const freed = await waitForPortFree(port, getPlatformTimeout(15000));
       if (!freed) {
-        logger.error('SYSTEM', 'Port did not free up after shutdown for version mismatch restart', { port });
+        logger.error('SYSTEM', 'Port did not free up after shutdown for workspace metadata restart', { port });
+        return false;
+      }
+      removePidFile();
+    } else if (runningWorkspaceRoot && runningWorkspaceRoot !== currentWorkspaceRoot) {
+      logger.info('SYSTEM', 'Worker running for a different workspace, restarting', {
+        runningWorkspaceRoot,
+        currentWorkspaceRoot
+      });
+
+      await httpShutdown(port);
+      const freed = await waitForPortFree(port, getPlatformTimeout(15000));
+      if (!freed) {
+        logger.error('SYSTEM', 'Port did not free up after shutdown for workspace switch', {
+          port,
+          runningWorkspaceRoot,
+          currentWorkspaceRoot
+        });
         return false;
       }
       removePidFile();
     } else {
-      logger.info('SYSTEM', 'Worker already running and healthy');
-      return true;
+      const versionCheck = await checkVersionMatch(port);
+      if (!versionCheck.matches) {
+        logger.info('SYSTEM', 'Worker version mismatch detected - auto-restarting', {
+          pluginVersion: versionCheck.pluginVersion,
+          workerVersion: versionCheck.workerVersion
+        });
+
+        await httpShutdown(port);
+        const freed = await waitForPortFree(port, getPlatformTimeout(15000));
+        if (!freed) {
+          logger.error('SYSTEM', 'Port did not free up after shutdown for version mismatch restart', { port });
+          return false;
+        }
+        removePidFile();
+      } else {
+        logger.info('SYSTEM', 'Worker already running and healthy');
+        return true;
+      }
     }
   }
 

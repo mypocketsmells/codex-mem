@@ -37,6 +37,7 @@ export interface PidInfo {
   pid: number;
   port: number;
   startedAt: string;
+  workspaceRoot?: string;
 }
 
 /**

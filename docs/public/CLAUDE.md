@@ -86,3 +86,21 @@ npx mintlify dev
 **Simple Rule**:
 - `/docs/public/` = Official user documentation (Mintlify .mdx files) ← YOU ARE HERE
 - `/docs/context/` = Internal docs, plans, references, audits
+
+<codex-mem-context>
+# Recent Activity
+
+### Feb 9, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #852 | 9:19 PM | 🔵 | WebP logomark attachment unsupported | ~204 |
+| #816 | " | 🔵 | WebP logo attachment unsupported | ~202 |
+
+### Feb 11, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #862 | 12:51 AM | 🔵 | WebP logomark attachment unsupported | ~198 |
+| #840 | " | 🔵 | WebP logo attachment blocked in codex-mem | ~224 |
+</codex-mem-context>

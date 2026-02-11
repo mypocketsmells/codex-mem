@@ -217,16 +217,16 @@ Paragraph 2`;
       expect(readContextFile(workspacePath)).toContain('new context');
     });
 
-    it('reads legacy context file if canonical file is missing', () => {
+    it('does not read legacy context file when canonical file is missing', () => {
       const legacyFile = join(workspacePath, '.cursor', 'rules', 'claude-mem-context.mdc');
       mkdirSync(join(workspacePath, '.cursor', 'rules'), { recursive: true });
       writeFileSync(legacyFile, 'legacy-content');
 
       const content = readContextFile(workspacePath);
-      expect(content).toBe('legacy-content');
+      expect(content).toBeNull();
     });
 
-    it('migrates legacy context filename to canonical on write', () => {
+    it('writes canonical context file without mutating legacy file', () => {
       const rulesDir = join(workspacePath, '.cursor', 'rules');
       const legacyFile = join(rulesDir, 'claude-mem-context.mdc');
       const canonicalFile = join(rulesDir, 'codex-mem-context.mdc');
@@ -236,7 +236,7 @@ Paragraph 2`;
       writeContextFile(workspacePath, 'fresh-context');
 
       expect(existsSync(canonicalFile)).toBe(true);
-      expect(existsSync(legacyFile)).toBe(false);
+      expect(existsSync(legacyFile)).toBe(true);
       expect(readContextFile(workspacePath)).toContain('fresh-context');
     });
   });

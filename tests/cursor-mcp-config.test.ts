@@ -121,9 +121,9 @@ describe('Cursor MCP Configuration', () => {
       expect(config.mcpServers['codex-mem']).toBeDefined();
     });
 
-    it('migrates legacy claude-mem server key to codex-mem', () => {
+    it('does not mutate non-canonical server keys when adding codex-mem', () => {
       mkdirSync(join(tempDir, '.cursor'), { recursive: true });
-      const legacyConfig = {
+      const existingConfig = {
         mcpServers: {
           'claude-mem': {
             command: 'node',
@@ -131,14 +131,14 @@ describe('Cursor MCP Configuration', () => {
           }
         }
       };
-      writeFileSync(mcpJsonPath, JSON.stringify(legacyConfig));
+      writeFileSync(mcpJsonPath, JSON.stringify(existingConfig));
 
       configureCursorMcp(mcpJsonPath, mcpServerPath);
 
       const config: CursorMcpConfig = JSON.parse(readFileSync(mcpJsonPath, 'utf-8'));
       expect(config.mcpServers['codex-mem']).toBeDefined();
       expect(config.mcpServers['codex-mem'].args).toEqual([mcpServerPath]);
-      expect(config.mcpServers['claude-mem']).toBeUndefined();
+      expect(config.mcpServers['claude-mem']).toBeDefined();
     });
   });
 
@@ -213,7 +213,7 @@ describe('Cursor MCP Configuration', () => {
       expect(updated.mcpServers['codex-mem']).toBeUndefined();
     });
 
-    it('removes legacy claude-mem server key too', () => {
+    it('does not remove non-canonical server keys', () => {
       mkdirSync(join(tempDir, '.cursor'), { recursive: true });
       const config = {
         mcpServers: {
@@ -227,7 +227,7 @@ describe('Cursor MCP Configuration', () => {
 
       const updated: CursorMcpConfig = JSON.parse(readFileSync(mcpJsonPath, 'utf-8'));
       expect(updated.mcpServers['other-server']).toBeDefined();
-      expect(updated.mcpServers['claude-mem']).toBeUndefined();
+      expect(updated.mcpServers['claude-mem']).toBeDefined();
     });
 
     it('does nothing if mcp.json does not exist', () => {

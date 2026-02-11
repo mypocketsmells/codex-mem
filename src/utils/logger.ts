@@ -5,7 +5,7 @@
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME, resolveDefaultDataDir } from '../shared/product-config.js';
+import { CANONICAL_PRODUCT_NAME, resolveDefaultDataDir } from '../shared/product-config.js';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -56,12 +56,9 @@ class Logger {
         mkdirSync(logsDir, { recursive: true });
       }
 
-      // Create log file path with date (canonical prefix, fallback to legacy file if it exists).
+      // Create codex log file path with date.
       const date = new Date().toISOString().split('T')[0];
-      const canonicalLogFilePath = join(logsDir, `${CANONICAL_PRODUCT_NAME}-${date}.log`);
-      const legacyLogFilePath = join(logsDir, `${LEGACY_PRODUCT_NAME}-${date}.log`);
-      this.logFilePath = existsSync(canonicalLogFilePath) ? canonicalLogFilePath
-        : (existsSync(legacyLogFilePath) ? legacyLogFilePath : canonicalLogFilePath);
+      this.logFilePath = join(logsDir, `${CANONICAL_PRODUCT_NAME}-${date}.log`);
     } catch (error) {
       // If log file initialization fails, just log to console
       console.error('[LOGGER] Failed to initialize log file:', error);

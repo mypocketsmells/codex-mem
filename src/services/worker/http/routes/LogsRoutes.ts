@@ -10,7 +10,7 @@ import { join } from 'path';
 import { logger } from '../../../../utils/logger.js';
 import { SettingsDefaultsManager } from '../../../../shared/SettingsDefaultsManager.js';
 import { BaseRouteHandler } from '../BaseRouteHandler.js';
-import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from '../../../../shared/product-config.js';
+import { CANONICAL_PRODUCT_NAME } from '../../../../shared/product-config.js';
 
 export class LogsRoutes extends BaseRouteHandler {
   private getLogFilePath(): string {
@@ -18,12 +18,7 @@ export class LogsRoutes extends BaseRouteHandler {
     const logsDir = join(dataDir, 'logs');
     const date = new Date().toISOString().split('T')[0];
 
-    const canonicalPath = join(logsDir, `${CANONICAL_PRODUCT_NAME}-${date}.log`);
-    const legacyPath = join(logsDir, `${LEGACY_PRODUCT_NAME}-${date}.log`);
-
-    if (existsSync(canonicalPath)) return canonicalPath;
-    if (existsSync(legacyPath)) return legacyPath;
-    return canonicalPath;
+    return join(logsDir, `${CANONICAL_PRODUCT_NAME}-${date}.log`);
   }
 
   private getLogsDir(): string {

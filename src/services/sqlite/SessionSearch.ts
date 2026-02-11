@@ -1,6 +1,7 @@
 import { Database } from 'bun:sqlite';
+import { dirname } from 'path';
 import { TableNameRow } from '../../types/database.js';
-import { DATA_DIR, DB_PATH, ensureDir } from '../../shared/paths.js';
+import { DB_PATH, ensureDir } from '../../shared/paths.js';
 import { logger } from '../../utils/logger.js';
 import { isDirectChild } from '../../shared/path-utils.js';
 import {
@@ -23,11 +24,11 @@ export class SessionSearch {
   private db: Database;
 
   constructor(dbPath?: string) {
-    if (!dbPath) {
-      ensureDir(DATA_DIR);
-      dbPath = DB_PATH;
+    const resolvedDbPath = dbPath ?? DB_PATH;
+    if (resolvedDbPath !== ':memory:') {
+      ensureDir(dirname(resolvedDbPath));
     }
-    this.db = new Database(dbPath);
+    this.db = new Database(resolvedDbPath);
     this.db.run('PRAGMA journal_mode = WAL');
 
     // Ensure FTS tables exist

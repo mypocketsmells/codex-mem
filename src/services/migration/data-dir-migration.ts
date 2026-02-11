@@ -7,10 +7,12 @@ import {
   writeFileSync,
 } from 'fs';
 import { dirname, join, relative } from 'path';
-import { getCanonicalDataDirPath, getLegacyDataDirPath } from '../../shared/product-config.js';
+import { homedir } from 'os';
+import { getCanonicalDataDirPath } from '../../shared/product-config.js';
 
 export const DATA_MIGRATION_LOCK_FILENAME = '.legacy-data-dir-migration.lock.json';
 export const DATA_MIGRATION_REPORT_FILENAME = 'legacy-data-dir-migration-report.json';
+const LEGACY_DATA_DIR_PATH = join(homedir(), '.claude-mem');
 
 export interface DataDirMigrationOptions {
   legacyDirPath?: string;
@@ -74,7 +76,7 @@ function writeMigrationMetadata(
 }
 
 export function runDataDirMigration(options: DataDirMigrationOptions = {}): DataDirMigrationResult {
-  const legacyDirPath = options.legacyDirPath ?? getLegacyDataDirPath();
+  const legacyDirPath = options.legacyDirPath ?? LEGACY_DATA_DIR_PATH;
   const canonicalDirPath = options.canonicalDirPath ?? getCanonicalDataDirPath();
   const dryRun = options.dryRun ?? false;
   const overwrite = options.overwrite ?? false;

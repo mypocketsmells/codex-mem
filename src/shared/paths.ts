@@ -5,7 +5,10 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { SettingsDefaultsManager } from './SettingsDefaultsManager.js';
 import { logger } from '../utils/logger.js';
-import { CANONICAL_PRODUCT_NAME, LEGACY_PRODUCT_NAME } from './product-config.js';
+import {
+  CANONICAL_PRODUCT_NAME,
+  getCanonicalProjectDataDirPath,
+} from './product-config.js';
 
 // Get __dirname that works in both ESM (hooks) and CJS (worker) contexts
 function getDirname(): string {
@@ -37,16 +40,30 @@ export const BACKUPS_DIR = join(DATA_DIR, 'backups');
 export const MODES_DIR = join(DATA_DIR, 'modes');
 export const USER_SETTINGS_PATH = join(DATA_DIR, 'settings.json');
 const CANONICAL_DB_FILENAME = `${CANONICAL_PRODUCT_NAME}.db`;
-const LEGACY_DB_FILENAME = `${LEGACY_PRODUCT_NAME}.db`;
+
+/**
+ * Resolve database directory with codex-only project-local defaults.
+ *
+ * Priority:
+ * 1) CODEX_MEM_DATA_DIR env var
+ * 2) CLAUDE_MEM_DATA_DIR env var
+ * 3) Existing <project-root>/.codex-mem
+ * 4) Default <project-root>/.codex-mem
+ */
+function resolveDatabaseDataDir(): string {
+  if (process.env.CODEX_MEM_DATA_DIR) return process.env.CODEX_MEM_DATA_DIR;
+  if (process.env.CLAUDE_MEM_DATA_DIR) return process.env.CLAUDE_MEM_DATA_DIR;
+
+  const canonicalProjectDataDir = getCanonicalProjectDataDirPath();
+  if (existsSync(canonicalProjectDataDir)) return canonicalProjectDataDir;
+
+  return canonicalProjectDataDir;
+}
+
+export const DATABASE_DATA_DIR = resolveDatabaseDataDir();
 
 function resolveDatabasePath(): string {
-  const canonicalDbPath = join(DATA_DIR, CANONICAL_DB_FILENAME);
-  if (existsSync(canonicalDbPath)) return canonicalDbPath;
-
-  const legacyDbPath = join(DATA_DIR, LEGACY_DB_FILENAME);
-  if (existsSync(legacyDbPath)) return legacyDbPath;
-
-  return canonicalDbPath;
+  return join(DATABASE_DATA_DIR, CANONICAL_DB_FILENAME);
 }
 
 export const DB_PATH = resolveDatabasePath();
