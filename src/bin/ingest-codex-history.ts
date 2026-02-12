@@ -9,7 +9,7 @@
 
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { getWorkerPort } from '../shared/worker-utils.js';
+import { getWorkerHost, getWorkerPort } from '../shared/worker-utils.js';
 import { RetryPolicy } from '../services/ingestion/codex-history.js';
 import {
   ensureWorkerAvailable,
@@ -21,6 +21,7 @@ import {
 interface CliOptions {
   historyPath?: string;
   workspacePath: string;
+  workerHost: string;
   sinceTs?: number;
   limit?: number;
   dryRun: boolean;
@@ -37,6 +38,7 @@ const DEFAULT_RETRY_POLICY: RetryPolicy = {
 function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = {
     workspacePath: process.cwd(),
+    workerHost: getWorkerHost(),
     dryRun: false,
     includeSystem: false,
     skipSummaries: false,
@@ -52,6 +54,14 @@ function parseArgs(argv: string[]): CliOptions {
     }
     if (arg === '--workspace' && argv[index + 1]) {
       options.workspacePath = resolve(argv[++index]);
+      continue;
+    }
+    if (arg === '--host' && argv[index + 1]) {
+      const host = argv[++index].trim();
+      if (!host) {
+        throw new Error('Invalid --host value: empty string');
+      }
+      options.workerHost = host;
       continue;
     }
     if (arg === '--since' && argv[index + 1]) {
@@ -115,6 +125,7 @@ function printUsage(): void {
 Options:
   --history <path>        Path to one Codex input JSONL (default: all ~/.codex/sessions/**/*.jsonl, fallback ~/.codex/history.jsonl)
   --workspace <path>      Workspace path to attribute observations (default: current dir)
+  --host <host>           Worker host address (default: from settings)
   --since <unix_ts>       Only ingest records with ts >= unix timestamp
   --limit <n>             Max records to ingest this run
   --retries <n>           Retry attempts for transient HTTP failures (default: 3)
@@ -150,6 +161,7 @@ async function main(): Promise<void> {
     retryPolicy: options.retryPolicy,
     stateFilePath,
     port: getWorkerPort(),
+    workerHost: options.workerHost,
     sinceTs: options.sinceTs,
     limit: options.limit,
     ensureWorkerAvailableFn: ensureWorkerAvailable

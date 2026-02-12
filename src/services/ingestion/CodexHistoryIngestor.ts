@@ -50,10 +50,11 @@ export interface CodexHistoryIngestionOptions {
   retryPolicy: RetryPolicy;
   stateFilePath?: string;
   port?: number;
+  workerHost?: string;
   sinceTs?: number;
   limit?: number;
   maxHistoryFiles?: number;
-  ensureWorkerAvailableFn?: (port: number) => Promise<void>;
+  ensureWorkerAvailableFn?: (port: number, host?: string) => Promise<void>;
   fetchFn?: typeof fetch;
   sleepFn?: (ms: number) => Promise<void>;
 }
@@ -81,6 +82,17 @@ export interface CodexSessionProjectDiscoveryResult {
   discoveredSessionProjects: string[];
   scannedFiles: number;
   lastScanEpochMs: number;
+}
+
+function formatHostForUrl(host: string): string {
+  if (host.includes(':') && !host.startsWith('[')) {
+    return `[${host}]`;
+  }
+  return host;
+}
+
+function buildWorkerBaseUrl(host: string, port: number): string {
+  return `http://${formatHostForUrl(host)}:${port}`;
 }
 
 function listJsonlFilesRecursive(directoryPath: string): string[] {
@@ -211,17 +223,17 @@ export function saveCodexIngestionCheckpointState(
   writeFileSync(stateFilePath, JSON.stringify(outputState, null, 2), 'utf-8');
 }
 
-export async function isWorkerHealthy(port: number): Promise<boolean> {
+export async function isWorkerHealthy(port: number, host: string = '127.0.0.1'): Promise<boolean> {
   try {
-    const response = await fetch(`http://127.0.0.1:${port}/api/health`);
+    const response = await fetch(`${buildWorkerBaseUrl(host, port)}/api/health`);
     return response.ok;
   } catch {
     return false;
   }
 }
 
-export async function ensureWorkerAvailable(port: number): Promise<void> {
-  if (await isWorkerHealthy(port)) return;
+export async function ensureWorkerAvailable(port: number, host: string = '127.0.0.1'): Promise<void> {
+  if (await isWorkerHealthy(port, host)) return;
 
   const startResult = spawnSync(
     process.platform === 'win32' ? 'bun.exe' : 'bun',
@@ -238,7 +250,7 @@ export async function ensureWorkerAvailable(port: number): Promise<void> {
   }
 
   for (let attempt = 0; attempt < 30; attempt++) {
-    if (await isWorkerHealthy(port)) return;
+    if (await isWorkerHealthy(port, host)) return;
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
@@ -249,12 +261,13 @@ async function ingestObservationRecord(
   historyRecordWithSource: HistoryRecordWithSource,
   workspacePathFallback: string,
   port: number,
+  workerHost: string,
   retryPolicy: RetryPolicy,
   fetchFn: typeof fetch,
   sleepFn: (ms: number) => Promise<void>
 ): Promise<void> {
   const { record, historyPath } = historyRecordWithSource;
-  const baseUrl = `http://127.0.0.1:${port}`;
+  const baseUrl = buildWorkerBaseUrl(workerHost, port);
   const contentSessionId = toContentSessionId(record.session_id);
   const resolvedWorkspacePath = resolveWorkspacePathForRecord(record, workspacePathFallback);
   const project = workspacePathToProjectName(resolvedWorkspacePath);
@@ -300,13 +313,14 @@ async function ingestSummaries(
   ingestedHistoryRecords: HistoryRecordWithSource[],
   lastAssistantMessageBySession: ReadonlyMap<string, string>,
   port: number,
+  workerHost: string,
   retryPolicy: RetryPolicy,
   fetchFn: typeof fetch,
   sleepFn: (ms: number) => Promise<void>
 ): Promise<{ attempted: number; successful: number; failedSessionIds: string[] }> {
   const ingestedRecords = ingestedHistoryRecords.map(entry => entry.record);
   const summaries = buildSummaryRequests(ingestedRecords, lastAssistantMessageBySession);
-  const baseUrl = `http://127.0.0.1:${port}`;
+  const baseUrl = buildWorkerBaseUrl(workerHost, port);
 
   let successful = 0;
   const failedSessionIds: string[] = [];
@@ -343,6 +357,7 @@ export async function runCodexHistoryIngestion(options: CodexHistoryIngestionOpt
   const sleepFn = options.sleepFn || (async (ms: number) => await new Promise(resolve => setTimeout(resolve, ms)));
   const ensureWorker = options.ensureWorkerAvailableFn || ensureWorkerAvailable;
   const workerPort = typeof options.port === 'number' ? options.port : getWorkerPort();
+  const workerHost = options.workerHost?.trim() || '127.0.0.1';
 
   const requestedHistoryPaths = options.maxHistoryFiles && options.maxHistoryFiles > 0
     ? options.historyPaths.slice(-options.maxHistoryFiles)
@@ -438,7 +453,7 @@ export async function runCodexHistoryIngestion(options: CodexHistoryIngestionOpt
     };
   }
 
-  await ensureWorker(workerPort);
+  await ensureWorker(workerPort, workerHost);
 
   const ingestedRecordEntries: HistoryRecordWithSource[] = [];
   let stoppedAt: CodexHistoryIngestionResult['stoppedAt'] | undefined;
@@ -449,6 +464,7 @@ export async function runCodexHistoryIngestion(options: CodexHistoryIngestionOpt
         historyRecordWithSource,
         options.workspacePath,
         workerPort,
+        workerHost,
         options.retryPolicy,
         fetchFn,
         sleepFn
@@ -477,6 +493,7 @@ export async function runCodexHistoryIngestion(options: CodexHistoryIngestionOpt
       ingestedRecordEntries,
       mergedLastAssistantMessageBySession,
       workerPort,
+      workerHost,
       options.retryPolicy,
       fetchFn,
       sleepFn
