@@ -30,7 +30,7 @@ describe('OllamaAgent', () => {
       ...SettingsDefaultsManager.getAllDefaults(),
       CLAUDE_MEM_PROVIDER: 'ollama',
       CLAUDE_MEM_OLLAMA_MODE: 'native',
-      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
+      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://localhost:11434',
       CLAUDE_MEM_OLLAMA_MODEL: 'gemma3:4b',
       CLAUDE_MEM_OLLAMA_TIMEOUT_MS: '120000',
       CLAUDE_MEM_OLLAMA_TEMPERATURE: '0.2',
@@ -127,7 +127,7 @@ describe('OllamaAgent', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const [url, request] = (global.fetch as any).mock.calls[0];
-    expect(url).toBe('http://127.0.0.1:11434/api/chat');
+    expect(url).toBe('http://localhost:11434/api/chat');
 
     const requestBody = JSON.parse(request.body);
     expect(requestBody.model).toBe('gemma3:4b');

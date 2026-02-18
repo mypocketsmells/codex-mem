@@ -170,7 +170,7 @@ session-summary.sh
 ### Worker Settings
 Located in `~/.codex-mem/settings.json`:
 - `CLAUDE_MEM_WORKER_PORT` (default: 37777)
-- `CLAUDE_MEM_WORKER_HOST` (default: 127.0.0.1)
+- `CLAUDE_MEM_WORKER_HOST` (default: localhost)
 
 ### Hook Settings
 Located in `hooks.json`:
@@ -234,7 +234,7 @@ Located in `hooks.json`:
 
 3. **Test context retrieval**:
    ```bash
-   curl "http://127.0.0.1:37777/api/context/inject?project=test"
+   curl "http://localhost:37777/api/context/inject?project=test"
    ```
 
 ### Integration Testing

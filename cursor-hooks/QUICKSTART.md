@@ -95,14 +95,14 @@ Restart Cursor to load the hooks.
 - Check Hooks output channel in Cursor
 
 **Worker not responding?**
-- Check if worker is running: `curl http://127.0.0.1:37777/api/readiness`
+- Check if worker is running: `curl http://localhost:37777/api/readiness`
 - Check logs: `tail -f ~/.codex-mem/logs/worker-$(date +%Y-%m-%d).log`
 - Restart worker: `bun run worker:restart`
 
 **Observations not saving?**
 - Check worker logs for errors
 - Verify session was initialized in web viewer
-- Test API directly: `curl -X POST http://127.0.0.1:37777/api/sessions/observations ...`
+- Test API directly: `curl -X POST http://localhost:37777/api/sessions/observations ...`
 
 ## Next Steps
 

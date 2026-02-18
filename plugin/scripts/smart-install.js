@@ -414,7 +414,7 @@ try {
     console.error(`[codex-mem] Plugin updated to v${newVersion} - restarting worker...`);
     try {
       // Graceful shutdown via HTTP (curl is cross-platform enough)
-      execSync(`curl -s -X POST http://127.0.0.1:${port}/api/admin/shutdown`, {
+      execSync(`curl -s -X POST http://localhost:${port}/api/admin/shutdown`, {
         stdio: 'ignore',
         shell: IS_WINDOWS,
         timeout: 5000

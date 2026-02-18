@@ -206,7 +206,7 @@ describe('CodexAgent', () => {
       CLAUDE_MEM_PROVIDER: 'ollama',
       CLAUDE_MEM_OLLAMA_MODE: 'codex_bridge',
       CLAUDE_MEM_OLLAMA_MODEL: 'gemma3:4b',
-      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
+      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://localhost:11434',
       CLAUDE_MEM_CODEX_REASONING_EFFORT: 'high'
     }));
 
@@ -268,6 +268,6 @@ describe('CodexAgent', () => {
     expect(request.model).toBe('gemma3:4b');
     expect(request.useOpenSourceProvider).toBe(true);
     expect(request.localProvider).toBe('ollama');
-    expect(request.extraEnvironment).toEqual({ OLLAMA_HOST: 'http://127.0.0.1:11434' });
+    expect(request.extraEnvironment).toEqual({ OLLAMA_HOST: 'http://localhost:11434' });
   });
 });

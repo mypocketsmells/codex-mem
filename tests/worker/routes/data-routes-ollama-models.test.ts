@@ -27,7 +27,7 @@ describe('DataRoutes /api/ollama/models', () => {
 
     loadSettingsSpy = spyOn(SettingsDefaultsManager, 'loadFromFile').mockImplementation(() => ({
       ...SettingsDefaultsManager.getAllDefaults(),
-      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://127.0.0.1:11434'
+      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://localhost:11434'
     }));
 
     const app = express();
@@ -61,7 +61,7 @@ describe('DataRoutes /api/ollama/models', () => {
     );
 
     routeHandler.setupRoutes(app);
-    server = app.listen(0, '127.0.0.1');
+    server = app.listen(0, 'localhost');
 
     await new Promise<void>((resolve) => {
       server!.once('listening', resolve);
@@ -86,23 +86,23 @@ describe('DataRoutes /api/ollama/models', () => {
   });
 
   it('returns discovered ollama models for a valid baseUrl', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/ollama/models?baseUrl=${encodeURIComponent('http://127.0.0.1:11434')}`);
+    const response = await fetch(`http://localhost:${port}/api/ollama/models?baseUrl=${encodeURIComponent('http://localhost:11434')}`);
     expect(response.status).toBe(200);
 
     const body = await response.json() as { models: string[]; source: string };
     expect(body.models).toEqual(['gemma3:4b', 'gemma3:12b']);
     expect(body.source).toBe('api');
-    expect(listInstalledOllamaModels).toHaveBeenCalledWith('http://127.0.0.1:11434');
+    expect(listInstalledOllamaModels).toHaveBeenCalledWith('http://localhost:11434');
   });
 
   it('uses configured baseUrl when baseUrl query is omitted', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/ollama/models`);
+    const response = await fetch(`http://localhost:${port}/api/ollama/models`);
     expect(response.status).toBe(200);
-    expect(listInstalledOllamaModels).toHaveBeenCalledWith('http://127.0.0.1:11434');
+    expect(listInstalledOllamaModels).toHaveBeenCalledWith('http://localhost:11434');
   });
 
   it('returns 400 for invalid baseUrl', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/ollama/models?baseUrl=${encodeURIComponent('ftp://example.com')}`);
+    const response = await fetch(`http://localhost:${port}/api/ollama/models?baseUrl=${encodeURIComponent('ftp://example.com')}`);
     expect(response.status).toBe(400);
 
     const body = await response.json() as { error: string };

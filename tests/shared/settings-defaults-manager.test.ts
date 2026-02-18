@@ -407,7 +407,7 @@ describe('SettingsDefaultsManager', () => {
       expect(defaults.CLAUDE_MEM_GEMINI_API_KEY).toBeDefined();
       expect(defaults.CLAUDE_MEM_OPENROUTER_API_KEY).toBeDefined();
       expect(defaults.CLAUDE_MEM_OLLAMA_MODE).toBe('native');
-      expect(defaults.CLAUDE_MEM_OLLAMA_BASE_URL).toBe('http://127.0.0.1:11434');
+      expect(defaults.CLAUDE_MEM_OLLAMA_BASE_URL).toBe('http://localhost:11434');
       expect(defaults.CLAUDE_MEM_OLLAMA_MODEL).toBe('gemma3:4b');
       expect(defaults.CLAUDE_MEM_OLLAMA_TIMEOUT_MS).toBe('120000');
       expect(defaults.CLAUDE_MEM_OLLAMA_TEMPERATURE).toBe('0.2');

@@ -141,7 +141,7 @@ The worker runs in the background and handles:
 
 3. **Verify the worker is running**:
    ```bash
-   curl http://127.0.0.1:37777/api/readiness
+   curl http://localhost:37777/api/readiness
    ```
    Should return: `{"status":"ready"}`
 

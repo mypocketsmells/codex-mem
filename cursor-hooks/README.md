@@ -157,7 +157,7 @@ chmod +x .cursor/hooks/*.sh
 The hooks read configuration from `~/.codex-mem/settings.json`:
 
 - `CLAUDE_MEM_WORKER_PORT`: Worker port (default: 37777)
-- `CLAUDE_MEM_WORKER_HOST`: Worker host (default: 127.0.0.1)
+- `CLAUDE_MEM_WORKER_HOST`: Worker host (default: localhost)
 
 ## Dependencies
 
@@ -192,7 +192,7 @@ Install on Ubuntu: `apt-get install jq curl`
 
 1. Verify worker is running:
    ```bash
-   curl http://127.0.0.1:37777/api/readiness
+   curl http://localhost:37777/api/readiness
    ```
 
 2. Check worker logs:
@@ -213,7 +213,7 @@ Install on Ubuntu: `apt-get install jq curl`
 
 3. Test observation endpoint directly:
    ```bash
-   curl -X POST http://127.0.0.1:37777/api/sessions/observations \
+   curl -X POST http://localhost:37777/api/sessions/observations \
      -H "Content-Type: application/json" \
      -d '{"contentSessionId":"test","tool_name":"test","tool_input":{},"tool_response":{},"cwd":"/tmp"}'
    ```

@@ -51,7 +51,7 @@ describe('FallbackErrorHandler', () => {
       });
 
       it('should return true for ECONNREFUSED errors', () => {
-        expect(shouldFallbackToClaude('connect ECONNREFUSED 127.0.0.1:8080')).toBe(true);
+        expect(shouldFallbackToClaude('connect ECONNREFUSED localhost:8080')).toBe(true);
         expect(shouldFallbackToClaude(new Error('ECONNREFUSED'))).toBe(true);
       });
 

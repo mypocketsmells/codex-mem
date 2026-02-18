@@ -318,7 +318,7 @@ Until a fix is released, users can manually:
      "CLAUDE_MEM_MODEL": "claude-sonnet-4-5",
      "CLAUDE_MEM_CONTEXT_OBSERVATIONS": "50",
      "CLAUDE_MEM_WORKER_PORT": "37777",
-     "CLAUDE_MEM_WORKER_HOST": "127.0.0.1",
+     "CLAUDE_MEM_WORKER_HOST": "localhost",
      "CLAUDE_MEM_PROVIDER": "claude",
      "CLAUDE_MEM_DATA_DIR": "$HOME/.claude-mem",
      "CLAUDE_MEM_LOG_LEVEL": "INFO",

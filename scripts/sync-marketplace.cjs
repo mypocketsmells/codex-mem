@@ -91,7 +91,7 @@ try {
   console.log('\n🔄 Triggering worker restart...');
   const http = require('http');
   const req = http.request({
-    hostname: '127.0.0.1',
+    hostname: 'localhost',
     port: 37777,
     path: '/api/admin/restart',
     method: 'POST',

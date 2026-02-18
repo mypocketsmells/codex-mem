@@ -74,7 +74,7 @@ export class SettingsDefaultsManager {
     CLAUDE_MEM_MODEL: 'claude-sonnet-4-5',
     CLAUDE_MEM_CONTEXT_OBSERVATIONS: '50',
     CLAUDE_MEM_WORKER_PORT: '37777',
-    CLAUDE_MEM_WORKER_HOST: '127.0.0.1',
+    CLAUDE_MEM_WORKER_HOST: 'localhost',
     CLAUDE_MEM_SKIP_TOOLS: 'ListMcpResourcesTool,SlashCommand,Skill,TodoWrite,AskUserQuestion',
     // AI Provider Configuration
     CLAUDE_MEM_PROVIDER: 'codex',  // Default to Codex
@@ -92,7 +92,7 @@ export class SettingsDefaultsManager {
     CLAUDE_MEM_OPENROUTER_MAX_CONTEXT_MESSAGES: '20',  // Max messages in context window
     CLAUDE_MEM_OPENROUTER_MAX_TOKENS: '100000',  // Max estimated tokens (~100k safety limit)
     CLAUDE_MEM_OLLAMA_MODE: 'native',
-    CLAUDE_MEM_OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
+    CLAUDE_MEM_OLLAMA_BASE_URL: 'http://localhost:11434',
     CLAUDE_MEM_OLLAMA_MODEL: 'gemma3:4b',
     CLAUDE_MEM_OLLAMA_TIMEOUT_MS: '120000',
     CLAUDE_MEM_OLLAMA_TEMPERATURE: '0.2',

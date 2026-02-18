@@ -66,9 +66,9 @@ describe('Hook Execution E2E', () => {
   describe('health and readiness endpoints', () => {
     it('should return 200 with status ok from /api/health', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
       expect(response.status).toBe(200);
 
       const body = await response.json();
@@ -81,9 +81,9 @@ describe('Hook Execution E2E', () => {
 
     it('should return 200 with status ready from /api/readiness when initialized', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+      const response = await fetch(`http://localhost:${testPort}/api/readiness`);
       expect(response.status).toBe(200);
 
       const body = await response.json();
@@ -99,9 +99,9 @@ describe('Hook Execution E2E', () => {
       };
 
       server = new Server(uninitializedOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+      const response = await fetch(`http://localhost:${testPort}/api/readiness`);
       expect(response.status).toBe(503);
 
       const body = await response.json();
@@ -111,9 +111,9 @@ describe('Hook Execution E2E', () => {
 
     it('should return version from /api/version', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/version`);
+      const response = await fetch(`http://localhost:${testPort}/api/version`);
       expect(response.status).toBe(200);
 
       const body = await response.json();
@@ -125,14 +125,14 @@ describe('Hook Execution E2E', () => {
   describe('server lifecycle', () => {
     it('should start and stop cleanly', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       const httpServer = server.getHttpServer();
       expect(httpServer).not.toBeNull();
       expect(httpServer!.listening).toBe(true);
 
       // Verify health endpoint works
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
       expect(response.status).toBe(200);
 
       // Close server
@@ -160,10 +160,10 @@ describe('Hook Execution E2E', () => {
       };
 
       server = new Server(dynamicOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Check when not initialized
-      let response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      let response = await fetch(`http://localhost:${testPort}/api/health`);
       let body = await response.json();
       expect(body.initialized).toBe(false);
 
@@ -171,7 +171,7 @@ describe('Hook Execution E2E', () => {
       isInitialized = true;
 
       // Check when initialized
-      response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      response = await fetch(`http://localhost:${testPort}/api/health`);
       body = await response.json();
       expect(body.initialized).toBe(true);
     });
@@ -181,9 +181,9 @@ describe('Hook Execution E2E', () => {
     it('should return 404 for unknown routes after finalizeRoutes', async () => {
       server = new Server(mockOptions);
       server.finalizeRoutes();
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/nonexistent`);
+      const response = await fetch(`http://localhost:${testPort}/api/nonexistent`);
       expect(response.status).toBe(404);
 
       const body = await response.json();
@@ -193,10 +193,10 @@ describe('Hook Execution E2E', () => {
     it('should accept JSON content type for POST requests', async () => {
       server = new Server(mockOptions);
       server.finalizeRoutes();
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Even though this endpoint doesn't exist, verify JSON handling
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/test-json`, {
+      const response = await fetch(`http://localhost:${testPort}/api/test-json`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ test: 'data' })
@@ -212,7 +212,7 @@ describe('Hook Execution E2E', () => {
       // This test simulates what the session init endpoint does
       // with private prompts, without needing the full route handler
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Import tag stripping utility
       const { stripMemoryTagsFromPrompt } = await import('../../src/utils/tag-stripping.js');
@@ -228,7 +228,7 @@ describe('Hook Execution E2E', () => {
 
     it('should demonstrate partial privacy for mixed prompts', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       const { stripMemoryTagsFromPrompt } = await import('../../src/utils/tag-stripping.js');
 

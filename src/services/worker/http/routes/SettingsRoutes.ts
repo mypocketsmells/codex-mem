@@ -19,6 +19,12 @@ import { isProviderFallbackPolicy } from '../../../../shared/provider-fallback-p
 import { clearPortCache } from '../../../../shared/worker-utils.js';
 import { USER_SETTINGS_PATH } from '../../../../shared/paths.js';
 
+const MASKED_SECRET_PREFIX = '__MASKED_SECRET__:';
+const SECRET_SETTING_KEYS = new Set([
+  'CLAUDE_MEM_GEMINI_API_KEY',
+  'CLAUDE_MEM_OPENROUTER_API_KEY',
+]);
+
 export class SettingsRoutes extends BaseRouteHandler {
   constructor(
     private settingsManager: SettingsManager
@@ -47,7 +53,7 @@ export class SettingsRoutes extends BaseRouteHandler {
   private handleGetSettings = this.wrapHandler((req: Request, res: Response): void => {
     this.ensureSettingsFile(USER_SETTINGS_PATH);
     const settings = SettingsDefaultsManager.loadFromFile(USER_SETTINGS_PATH);
-    res.json(settings);
+    res.json(this.getSafeSettingsForClient(settings));
   });
 
   /**
@@ -136,6 +142,10 @@ export class SettingsRoutes extends BaseRouteHandler {
 
     for (const key of settingKeys) {
       if (req.body[key] !== undefined) {
+        if (SECRET_SETTING_KEYS.has(key) && this.isMaskedSettingValue(req.body[key])) {
+          // UI echoes masked placeholders back when secrets are unchanged.
+          continue;
+        }
         settings[key] = req.body[key];
       }
     }
@@ -527,5 +537,29 @@ export class SettingsRoutes extends BaseRouteHandler {
       writeFileSync(settingsPath, JSON.stringify(defaults, null, 2), 'utf-8');
       logger.info('SETTINGS', 'Created settings file with defaults', { settingsPath });
     }
+  }
+
+  private getSafeSettingsForClient(settings: Record<string, unknown>): Record<string, unknown> {
+    const safeSettings: Record<string, unknown> = { ...settings };
+
+    for (const key of SECRET_SETTING_KEYS) {
+      safeSettings[key] = this.maskSecretSettingValue(safeSettings[key]);
+    }
+
+    return safeSettings;
+  }
+
+  private maskSecretSettingValue(value: unknown): string {
+    const secretValue = typeof value === 'string' ? value.trim() : '';
+    if (!secretValue) {
+      return '';
+    }
+
+    const suffix = secretValue.slice(-4);
+    return `${MASKED_SECRET_PREFIX}${suffix}`;
+  }
+
+  private isMaskedSettingValue(value: unknown): boolean {
+    return typeof value === 'string' && value.startsWith(MASKED_SECRET_PREFIX);
   }
 }

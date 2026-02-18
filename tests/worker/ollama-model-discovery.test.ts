@@ -22,7 +22,7 @@ describe('OllamaModelDiscovery', () => {
       stderr: ''
     }));
 
-    const result = await listInstalledOllamaModels('http://127.0.0.1:11434', {
+    const result = await listInstalledOllamaModels('http://localhost:11434', {
       fetchFn: fetchFn as unknown as typeof fetch,
       cliListRunner: cliRunner
     });
@@ -43,7 +43,7 @@ describe('OllamaModelDiscovery', () => {
       stderr: ''
     }));
 
-    const result = await listInstalledOllamaModels('http://127.0.0.1:11434', {
+    const result = await listInstalledOllamaModels('http://localhost:11434', {
       fetchFn: fetchFn as unknown as typeof fetch,
       cliListRunner: cliRunner
     });
@@ -63,7 +63,7 @@ describe('OllamaModelDiscovery', () => {
       stderr: 'ollama not found'
     }));
 
-    const result = await listInstalledOllamaModels('http://127.0.0.1:11434', {
+    const result = await listInstalledOllamaModels('http://localhost:11434', {
       fetchFn: fetchFn as unknown as typeof fetch,
       cliListRunner: cliRunner
     });

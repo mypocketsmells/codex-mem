@@ -43,7 +43,7 @@ describe('DataRoutes /api/projects', () => {
     );
 
     routeHandler.setupRoutes(app);
-    server = app.listen(0, '127.0.0.1');
+    server = app.listen(0, 'localhost');
 
     await new Promise<void>((resolve) => {
       server!.once('listening', resolve);
@@ -69,7 +69,7 @@ describe('DataRoutes /api/projects', () => {
   it('includes projects from sdk_sessions even without observations', async () => {
     store.createSDKSession('session-no-output', 'project-no-output-yet', 'prompt only');
 
-    const response = await fetch(`http://127.0.0.1:${port}/api/projects`);
+    const response = await fetch(`http://localhost:${port}/api/projects`);
     expect(response.status).toBe(200);
 
     const body = await response.json() as { projects: string[] };

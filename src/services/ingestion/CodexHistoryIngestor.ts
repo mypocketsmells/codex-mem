@@ -16,7 +16,7 @@ import {
   workspacePathToProjectName
 } from './codex-history.js';
 import { getCanonicalDataDirPath } from '../../shared/product-config.js';
-import { getWorkerPort } from '../../shared/worker-utils.js';
+import { getWorkerHost, getWorkerPort } from '../../shared/worker-utils.js';
 
 export const CODEX_DEFAULT_HISTORY_PATH = join(homedir(), '.codex', 'history.jsonl');
 export const CODEX_DEFAULT_SESSIONS_ROOT = join(homedir(), '.codex', 'sessions');
@@ -223,7 +223,7 @@ export function saveCodexIngestionCheckpointState(
   writeFileSync(stateFilePath, JSON.stringify(outputState, null, 2), 'utf-8');
 }
 
-export async function isWorkerHealthy(port: number, host: string = '127.0.0.1'): Promise<boolean> {
+export async function isWorkerHealthy(port: number, host: string = 'localhost'): Promise<boolean> {
   try {
     const response = await fetch(`${buildWorkerBaseUrl(host, port)}/api/health`);
     return response.ok;
@@ -232,7 +232,7 @@ export async function isWorkerHealthy(port: number, host: string = '127.0.0.1'):
   }
 }
 
-export async function ensureWorkerAvailable(port: number, host: string = '127.0.0.1'): Promise<void> {
+export async function ensureWorkerAvailable(port: number, host: string = 'localhost'): Promise<void> {
   if (await isWorkerHealthy(port, host)) return;
 
   const startResult = spawnSync(
@@ -357,7 +357,7 @@ export async function runCodexHistoryIngestion(options: CodexHistoryIngestionOpt
   const sleepFn = options.sleepFn || (async (ms: number) => await new Promise(resolve => setTimeout(resolve, ms)));
   const ensureWorker = options.ensureWorkerAvailableFn || ensureWorkerAvailable;
   const workerPort = typeof options.port === 'number' ? options.port : getWorkerPort();
-  const workerHost = options.workerHost?.trim() || '127.0.0.1';
+  const workerHost = options.workerHost?.trim() || getWorkerHost();
 
   const requestedHistoryPaths = options.maxHistoryFiles && options.maxHistoryFiles > 0
     ? options.historyPaths.slice(-options.maxHistoryFiles)

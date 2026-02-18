@@ -11,7 +11,7 @@ import { describe, it, expect } from 'bun:test';
 function isAllowedOrigin(origin: string | undefined): boolean {
   if (!origin) return true; // No origin = hooks, curl, CLI
   if (origin.startsWith('http://localhost:')) return true;
-  if (origin.startsWith('http://127.0.0.1:')) return true;
+  if (origin.startsWith('http://localhost:')) return true;
   return false;
 }
 
@@ -27,9 +27,9 @@ describe('CORS Restriction', () => {
       expect(isAllowedOrigin('http://localhost:8080')).toBe(true);
     });
 
-    it('allows 127.0.0.1 with port', () => {
-      expect(isAllowedOrigin('http://127.0.0.1:37777')).toBe(true);
-      expect(isAllowedOrigin('http://127.0.0.1:3000')).toBe(true);
+    it('allows localhost with port', () => {
+      expect(isAllowedOrigin('http://localhost:37777')).toBe(true);
+      expect(isAllowedOrigin('http://localhost:3000')).toBe(true);
     });
   });
 

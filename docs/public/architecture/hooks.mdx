@@ -300,7 +300,7 @@ sequenceDiagram
 
 **Processing**:
 1. Wait for worker to be available (health check, max 10 seconds)
-2. Call: `GET http://127.0.0.1:37777/api/context/inject?project={project}`
+2. Call: `GET http://localhost:37777/api/context/inject?project={project}`
 3. Return formatted context as `additionalContext` in `hookSpecificOutput`
 
 **Output** (via stdout):
@@ -398,7 +398,7 @@ if (!cleanedPrompt || cleanedPrompt.trim() === '') {
 db.saveUserPrompt(session_id, promptNumber, cleanedPrompt)
 
 // 7. Initialize session via worker HTTP
-POST http://127.0.0.1:37777/sessions/{sessionDbId}/init
+POST http://localhost:37777/sessions/{sessionDbId}/init
 Body: { project, userPrompt, promptNumber }
 ```
 
@@ -493,7 +493,7 @@ if (SKIP_TOOLS[tool_name]) return
 await ensureWorkerRunning()
 
 // 3. Send to worker (fire-and-forget HTTP)
-POST http://127.0.0.1:37777/api/sessions/observations
+POST http://localhost:37777/api/sessions/observations
 Body: {
   claudeSessionId: session_id,
   tool_name,
@@ -588,7 +588,7 @@ const lines = fs.readFileSync(transcript_path, 'utf-8').split('\n')
 await ensureWorkerRunning()
 
 // 3. Send summarization request (fire-and-forget HTTP)
-POST http://127.0.0.1:37777/api/sessions/summarize
+POST http://localhost:37777/api/sessions/summarize
 Body: {
   claudeSessionId: session_id,
   last_user_message: string,
@@ -597,7 +597,7 @@ Body: {
 Timeout: 2000ms
 
 // 4. Stop processing spinner
-POST http://127.0.0.1:37777/api/processing
+POST http://localhost:37777/api/processing
 Body: { isProcessing: false }
 ```
 
@@ -667,7 +667,7 @@ sequenceDiagram
 
 ```typescript
 // Send session complete (fire-and-forget HTTP)
-POST http://127.0.0.1:37777/api/sessions/complete
+POST http://localhost:37777/api/sessions/complete
 Body: {
   claudeSessionId: session_id,
   reason: string  // 'exit' | 'clear' | 'logout' | 'prompt_input_exit' | 'other'

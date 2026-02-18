@@ -73,7 +73,7 @@ The `user-message-hook.ts` extracts the project name using:
 const project = basename(process.cwd());
 
 const response = await fetch(
-  `http://127.0.0.1:${port}/api/context/inject?project=${encodeURIComponent(project)}&colors=true`,
+  `http://localhost:${port}/api/context/inject?project=${encodeURIComponent(project)}&colors=true`,
   { method: 'GET' }
 );
 ```

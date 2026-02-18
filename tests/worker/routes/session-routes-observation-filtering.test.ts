@@ -48,7 +48,7 @@ describe('SessionRoutes /api/sessions/observations filtering', () => {
     );
 
     routeHandler.setupRoutes(app);
-    server = app.listen(0, '127.0.0.1');
+    server = app.listen(0, 'localhost');
 
     await new Promise<void>((resolve) => {
       server!.once('listening', resolve);
@@ -72,7 +72,7 @@ describe('SessionRoutes /api/sessions/observations filtering', () => {
   });
 
   async function initializeSession(contentSessionId: string): Promise<void> {
-    const response = await fetch(`http://127.0.0.1:${port}/api/sessions/init`, {
+    const response = await fetch(`http://localhost:${port}/api/sessions/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -93,7 +93,7 @@ describe('SessionRoutes /api/sessions/observations filtering', () => {
       text: '# Message 1 (user)\nYou are a Codex-Mem, a specialized observer tool for creating searchable memory FOR FUTURE SESSIONS.\n<observed_from_primary_session>\n  <user_request>Reply exactly with: CODEx_OK</user_request>\n</observed_from_primary_session>\nMEMORY PROCESSING START\n======================='
     };
 
-    const response = await fetch(`http://127.0.0.1:${port}/api/sessions/observations`, {
+    const response = await fetch(`http://localhost:${port}/api/sessions/observations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -117,7 +117,7 @@ describe('SessionRoutes /api/sessions/observations filtering', () => {
     const contentSessionId = 'observer-normal-session';
     await initializeSession(contentSessionId);
 
-    const response = await fetch(`http://127.0.0.1:${port}/api/sessions/observations`, {
+    const response = await fetch(`http://localhost:${port}/api/sessions/observations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -76,7 +76,7 @@ describe('Server', () => {
       // Use a random high port to avoid conflicts
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Server should now be listening
       const httpServer = server.getHttpServer();
@@ -91,10 +91,10 @@ describe('Server', () => {
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
       // Start first server
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Second server should fail on same port
-      await expect(server2.listen(testPort, '127.0.0.1')).rejects.toThrow();
+      await expect(server2.listen(testPort, 'localhost')).rejects.toThrow();
 
       // The server object was created but not successfully listening
       const httpServer = server2.getHttpServer();
@@ -109,7 +109,7 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Server should exist and be listening
       const httpServerBefore = server.getHttpServer();
@@ -145,7 +145,7 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Close the server
       try {
@@ -162,7 +162,7 @@ describe('Server', () => {
 
       // Should be able to listen again on same port with a new server
       const server2 = new Server(mockOptions);
-      await server2.listen(testPort, '127.0.0.1');
+      await server2.listen(testPort, 'localhost');
 
       expect(server2.getHttpServer()!.listening).toBe(true);
 
@@ -186,7 +186,7 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       const httpServer = server.getHttpServer();
       expect(httpServer).not.toBeNull();
@@ -239,9 +239,9 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
 
       expect(response.status).toBe(200);
 
@@ -253,9 +253,9 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
       const body = await response.json();
 
       expect(body.initialized).toBe(true);
@@ -274,10 +274,10 @@ describe('Server', () => {
       server = new Server(dynamicOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Check when not initialized
-      let response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      let response = await fetch(`http://localhost:${testPort}/api/health`);
       let body = await response.json();
       expect(body.initialized).toBe(false);
 
@@ -285,7 +285,7 @@ describe('Server', () => {
       isInitialized = true;
 
       // Check when initialized
-      response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      response = await fetch(`http://localhost:${testPort}/api/health`);
       body = await response.json();
       expect(body.initialized).toBe(true);
     });
@@ -294,9 +294,9 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
       const body = await response.json();
 
       expect(body.platform).toBeDefined();
@@ -310,9 +310,9 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+      const response = await fetch(`http://localhost:${testPort}/api/readiness`);
 
       expect(response.status).toBe(200);
 
@@ -331,9 +331,9 @@ describe('Server', () => {
       server = new Server(uninitializedOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+      const response = await fetch(`http://localhost:${testPort}/api/readiness`);
 
       expect(response.status).toBe(503);
 
@@ -348,9 +348,9 @@ describe('Server', () => {
       server = new Server(mockOptions);
       const testPort = 40000 + Math.floor(Math.random() * 10000);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/version`);
+      const response = await fetch(`http://localhost:${testPort}/api/version`);
 
       expect(response.status).toBe(200);
 
@@ -366,9 +366,9 @@ describe('Server', () => {
       server.finalizeRoutes();
 
       const testPort = 40000 + Math.floor(Math.random() * 10000);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/nonexistent`);
+      const response = await fetch(`http://localhost:${testPort}/api/nonexistent`);
 
       expect(response.status).toBe(404);
 

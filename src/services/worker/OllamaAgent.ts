@@ -18,7 +18,7 @@ import {
   type WorkerRef
 } from './agents/index.js';
 
-const DEFAULT_OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
+const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434';
 const DEFAULT_OLLAMA_MODEL = 'gemma3:4b';
 const DEFAULT_OLLAMA_TIMEOUT_MS = 120_000;
 const DEFAULT_OLLAMA_TEMPERATURE = 0.2;

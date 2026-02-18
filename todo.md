@@ -20,8 +20,8 @@ Rename the project from `claude-mem` to `codex-mem` and complete the platform mi
 
 - [x] Fix prompt search endpoint returning empty results for valid prompt queries.
   - Repro:
-    1. `curl "http://127.0.0.1:37777/api/prompts?project=codex-mem&limit=8"` returns prompt rows including `PLAYWRIGHT_AUDIT_FULL ...`.
-    2. `curl "http://127.0.0.1:37777/api/search/prompts?query=PLAYWRIGHT&project=codex-mem&limit=5"` returns `No user prompts found matching "PLAYWRIGHT"`.
+    1. `curl "http://localhost:37777/api/prompts?project=codex-mem&limit=8"` returns prompt rows including `PLAYWRIGHT_AUDIT_FULL ...`.
+    2. `curl "http://localhost:37777/api/search/prompts?query=PLAYWRIGHT&project=codex-mem&limit=5"` returns `No user prompts found matching "PLAYWRIGHT"`.
     3. `sqlite3 ~/.codex-mem/codex-mem.db "SELECT rowid,prompt_text FROM user_prompts_fts WHERE user_prompts_fts MATCH 'Gemini' LIMIT 5;"` returns matching rows.
   - Suspected root cause: `src/services/worker/SearchManager.ts` `searchUserPrompts()` takes a Chroma-only path and never falls back to SQLite FTS.
   - Done when: `/api/search/prompts` returns expected matches without requiring Chroma prompt vectors, with regression coverage.

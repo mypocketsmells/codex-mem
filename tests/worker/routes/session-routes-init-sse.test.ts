@@ -46,7 +46,7 @@ describe('SessionRoutes /api/sessions/init SSE prompt broadcast', () => {
     );
 
     routeHandler.setupRoutes(app);
-    server = app.listen(0, '127.0.0.1');
+    server = app.listen(0, 'localhost');
 
     await new Promise<void>((resolve) => {
       server!.once('listening', resolve);
@@ -70,7 +70,7 @@ describe('SessionRoutes /api/sessions/init SSE prompt broadcast', () => {
   });
 
   it('broadcasts new_prompt after successful prompt save', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/sessions/init`, {
+    const response = await fetch(`http://localhost:${port}/api/sessions/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -99,7 +99,7 @@ describe('SessionRoutes /api/sessions/init SSE prompt broadcast', () => {
   });
 
   it('does not broadcast from /api/sessions/init for claude platform (handled by /sessions/:id/init)', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/sessions/init`, {
+    const response = await fetch(`http://localhost:${port}/api/sessions/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -117,7 +117,7 @@ describe('SessionRoutes /api/sessions/init SSE prompt broadcast', () => {
   });
 
   it('does not broadcast when prompt is fully private and skipped', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/sessions/init`, {
+    const response = await fetch(`http://localhost:${port}/api/sessions/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

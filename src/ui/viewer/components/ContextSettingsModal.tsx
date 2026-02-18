@@ -208,7 +208,7 @@ export function ContextSettingsModal({
       return;
     }
 
-    const baseUrl = (formState.CLAUDE_MEM_OLLAMA_BASE_URL || 'http://127.0.0.1:11434').trim();
+    const baseUrl = (formState.CLAUDE_MEM_OLLAMA_BASE_URL || 'http://localhost:11434').trim();
     const fetchInstalledModels = async (): Promise<void> => {
       setOllamaModelsLoading(true);
       setOllamaModelsError(null);
@@ -630,9 +630,9 @@ export function ContextSettingsModal({
                   >
                     <input
                       type="text"
-                      value={formState.CLAUDE_MEM_OLLAMA_BASE_URL || 'http://127.0.0.1:11434'}
+                      value={formState.CLAUDE_MEM_OLLAMA_BASE_URL || 'http://localhost:11434'}
                       onChange={(e) => updateSetting('CLAUDE_MEM_OLLAMA_BASE_URL', e.target.value)}
-                      placeholder="http://127.0.0.1:11434"
+                      placeholder="http://localhost:11434"
                     />
                   </FormField>
 

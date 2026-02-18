@@ -34,6 +34,13 @@ export function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs:
 let cachedPort: number | null = null;
 let cachedHost: string | null = null;
 
+function formatHostForUrl(host: string): string {
+  if (host.includes(':') && !host.startsWith('[')) {
+    return `[${host}]`;
+  }
+  return host;
+}
+
 /**
  * Get the worker port number from settings
  * Uses CLAUDE_MEM_WORKER_PORT from settings file or default (37777)
@@ -52,7 +59,7 @@ export function getWorkerPort(): number {
 
 /**
  * Get the worker host address
- * Uses CLAUDE_MEM_WORKER_HOST from settings file or default (127.0.0.1)
+ * Uses CLAUDE_MEM_WORKER_HOST from settings file or default (localhost)
  * Caches the host value to avoid repeated file reads
  */
 export function getWorkerHost(): string {
@@ -64,6 +71,13 @@ export function getWorkerHost(): string {
   const settings = SettingsDefaultsManager.loadFromFile(settingsPath);
   cachedHost = settings.CLAUDE_MEM_WORKER_HOST;
   return cachedHost;
+}
+
+/**
+ * Build worker base URL from host + port settings.
+ */
+export function getWorkerBaseUrl(port: number = getWorkerPort()): string {
+  return `http://${formatHostForUrl(getWorkerHost())}:${port}`;
 }
 
 /**
@@ -85,8 +99,9 @@ export function clearPortCache(): void {
  */
 async function isWorkerHealthy(): Promise<boolean> {
   const port = getWorkerPort();
+  const baseUrl = getWorkerBaseUrl(port);
   const response = await fetchWithTimeout(
-    `http://127.0.0.1:${port}/api/health`, {}, HEALTH_CHECK_TIMEOUT_MS
+    `${baseUrl}/api/health`, {}, HEALTH_CHECK_TIMEOUT_MS
   );
   return response.ok;
 }
@@ -109,8 +124,9 @@ function getPluginVersion(): string {
  */
 async function getWorkerVersion(): Promise<string> {
   const port = getWorkerPort();
+  const baseUrl = getWorkerBaseUrl(port);
   const response = await fetchWithTimeout(
-    `http://127.0.0.1:${port}/api/version`, {}, HEALTH_CHECK_TIMEOUT_MS
+    `${baseUrl}/api/version`, {}, HEALTH_CHECK_TIMEOUT_MS
   );
   if (!response.ok) {
     throw new Error(`Failed to get worker version: ${response.status}`);

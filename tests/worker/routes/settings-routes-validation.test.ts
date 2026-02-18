@@ -31,7 +31,7 @@ describe('SettingsRoutes codex model validation', () => {
     const validationResult = (routes as any).validateSettings({
       CLAUDE_MEM_PROVIDER: 'ollama',
       CLAUDE_MEM_OLLAMA_MODE: 'native',
-      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
+      CLAUDE_MEM_OLLAMA_BASE_URL: 'http://localhost:11434',
       CLAUDE_MEM_OLLAMA_MODEL: 'gemma3:4b',
       CLAUDE_MEM_OLLAMA_TIMEOUT_MS: '120000',
       CLAUDE_MEM_OLLAMA_TEMPERATURE: '0.2',
@@ -124,5 +124,27 @@ describe('SettingsRoutes codex model validation', () => {
 
     expect(validationResult.valid).toBe(false);
     expect(validationResult.error).toContain('CLAUDE_MEM_OLLAMA_OPTIONS_JSON');
+  });
+
+  it('masks API key settings for client responses', () => {
+    const routes = new SettingsRoutes({} as any);
+
+    const safeSettings = (routes as any).getSafeSettingsForClient({
+      CLAUDE_MEM_GEMINI_API_KEY: 'AIzaSyExampleGeminiKey1234567890',
+      CLAUDE_MEM_OPENROUTER_API_KEY: 'openrouter-example-key',
+      CLAUDE_MEM_PROVIDER: 'gemini'
+    });
+
+    expect(safeSettings.CLAUDE_MEM_GEMINI_API_KEY).toBe('__MASKED_SECRET__:7890');
+    expect(safeSettings.CLAUDE_MEM_OPENROUTER_API_KEY).toBe('__MASKED_SECRET__:-key');
+    expect(safeSettings.CLAUDE_MEM_PROVIDER).toBe('gemini');
+  });
+
+  it('detects masked setting sentinel values', () => {
+    const routes = new SettingsRoutes({} as any);
+
+    expect((routes as any).isMaskedSettingValue('__MASKED_SECRET__:abcd')).toBe(true);
+    expect((routes as any).isMaskedSettingValue('AIzaSyRealKeyValue')).toBe(false);
+    expect((routes as any).isMaskedSettingValue('')).toBe(false);
   });
 });

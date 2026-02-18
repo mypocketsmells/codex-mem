@@ -73,7 +73,7 @@ describe('DataRoutes /api/projects/diagnostics', () => {
     );
 
     routeHandler.setupRoutes(app);
-    server = app.listen(0, '127.0.0.1');
+    server = app.listen(0, 'localhost');
 
     await new Promise<void>((resolve) => {
       server!.once('listening', resolve);
@@ -107,7 +107,7 @@ describe('DataRoutes /api/projects/diagnostics', () => {
   });
 
   it('returns missing discovered projects that are not ingested yet', async () => {
-    const response = await fetch(`http://127.0.0.1:${port}/api/projects/diagnostics`);
+    const response = await fetch(`http://localhost:${port}/api/projects/diagnostics`);
     expect(response.status).toBe(200);
 
     const body = await response.json() as {

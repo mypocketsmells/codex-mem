@@ -140,7 +140,7 @@ async function checkWorkerHealth(port: number): Promise<any> {
 
   for (const endpoint of healthEndpoints) {
     try {
-      const response = await fetch(`http://127.0.0.1:${port}${endpoint}`, {
+      const response = await fetch(`http://localhost:${port}${endpoint}`, {
         signal: AbortSignal.timeout(2000),
       });
       if (response.ok) {
@@ -156,7 +156,7 @@ async function checkWorkerHealth(port: number): Promise<any> {
 
 async function getWorkerStats(port: number): Promise<any> {
   try {
-    const response = await fetch(`http://127.0.0.1:${port}/api/stats`, {
+    const response = await fetch(`http://localhost:${port}/api/stats`, {
       signal: AbortSignal.timeout(2000),
     });
     return await response.json();

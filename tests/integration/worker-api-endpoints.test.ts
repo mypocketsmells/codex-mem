@@ -67,9 +67,9 @@ describe('Worker API Endpoints Integration', () => {
     describe('GET /api/health', () => {
       it('should return status, initialized, mcpReady, platform, pid', async () => {
         server = new Server(mockOptions);
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+        const response = await fetch(`http://localhost:${testPort}/api/health`);
         expect(response.status).toBe(200);
 
         const body = await response.json();
@@ -91,9 +91,9 @@ describe('Worker API Endpoints Integration', () => {
         };
 
         server = new Server(uninitOptions);
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+        const response = await fetch(`http://localhost:${testPort}/api/health`);
         const body = await response.json();
 
         expect(body.status).toBe('ok'); // Health always returns ok
@@ -105,9 +105,9 @@ describe('Worker API Endpoints Integration', () => {
     describe('GET /api/readiness', () => {
       it('should return 200 with status ready when initialized', async () => {
         server = new Server(mockOptions);
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+        const response = await fetch(`http://localhost:${testPort}/api/readiness`);
         expect(response.status).toBe(200);
 
         const body = await response.json();
@@ -124,9 +124,9 @@ describe('Worker API Endpoints Integration', () => {
         };
 
         server = new Server(uninitOptions);
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+        const response = await fetch(`http://localhost:${testPort}/api/readiness`);
         expect(response.status).toBe(503);
 
         const body = await response.json();
@@ -138,9 +138,9 @@ describe('Worker API Endpoints Integration', () => {
     describe('GET /api/version', () => {
       it('should return version string', async () => {
         server = new Server(mockOptions);
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/version`);
+        const response = await fetch(`http://localhost:${testPort}/api/version`);
         expect(response.status).toBe(200);
 
         const body = await response.json();
@@ -155,9 +155,9 @@ describe('Worker API Endpoints Integration', () => {
       it('should return 404 for unknown GET routes', async () => {
         server = new Server(mockOptions);
         server.finalizeRoutes();
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/unknown-endpoint`);
+        const response = await fetch(`http://localhost:${testPort}/api/unknown-endpoint`);
         expect(response.status).toBe(404);
 
         const body = await response.json();
@@ -167,9 +167,9 @@ describe('Worker API Endpoints Integration', () => {
       it('should return 404 for unknown POST routes', async () => {
         server = new Server(mockOptions);
         server.finalizeRoutes();
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/unknown-endpoint`, {
+        const response = await fetch(`http://localhost:${testPort}/api/unknown-endpoint`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ test: 'data' })
@@ -180,9 +180,9 @@ describe('Worker API Endpoints Integration', () => {
       it('should return 404 for nested unknown routes', async () => {
         server = new Server(mockOptions);
         server.finalizeRoutes();
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/search/nonexistent/nested`);
+        const response = await fetch(`http://localhost:${testPort}/api/search/nonexistent/nested`);
         expect(response.status).toBe(404);
       });
     });
@@ -190,9 +190,9 @@ describe('Worker API Endpoints Integration', () => {
     describe('Method handling', () => {
       it('should handle OPTIONS requests', async () => {
         server = new Server(mockOptions);
-        await server.listen(testPort, '127.0.0.1');
+        await server.listen(testPort, 'localhost');
 
-        const response = await fetch(`http://127.0.0.1:${testPort}/api/health`, {
+        const response = await fetch(`http://localhost:${testPort}/api/health`, {
           method: 'OPTIONS'
         });
         // OPTIONS should either return 200 or 204 (CORS preflight)
@@ -205,9 +205,9 @@ describe('Worker API Endpoints Integration', () => {
     it('should accept application/json content type', async () => {
       server = new Server(mockOptions);
       server.finalizeRoutes();
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/nonexistent`, {
+      const response = await fetch(`http://localhost:${testPort}/api/nonexistent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'value' })
@@ -219,9 +219,9 @@ describe('Worker API Endpoints Integration', () => {
 
     it('should return JSON responses with correct content type', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
       const contentType = response.headers.get('content-type');
 
       expect(contentType).toContain('application/json');
@@ -239,17 +239,17 @@ describe('Worker API Endpoints Integration', () => {
       };
 
       server = new Server(dynamicOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Check uninitialized
-      let response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+      let response = await fetch(`http://localhost:${testPort}/api/readiness`);
       expect(response.status).toBe(503);
 
       // Initialize
       initialized = true;
 
       // Check initialized
-      response = await fetch(`http://127.0.0.1:${testPort}/api/readiness`);
+      response = await fetch(`http://localhost:${testPort}/api/readiness`);
       expect(response.status).toBe(200);
     });
 
@@ -263,10 +263,10 @@ describe('Worker API Endpoints Integration', () => {
       };
 
       server = new Server(dynamicOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Check MCP not ready
-      let response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      let response = await fetch(`http://localhost:${testPort}/api/health`);
       let body = await response.json();
       expect(body.mcpReady).toBe(false);
 
@@ -274,7 +274,7 @@ describe('Worker API Endpoints Integration', () => {
       mcpReady = true;
 
       // Check MCP ready
-      response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      response = await fetch(`http://localhost:${testPort}/api/health`);
       body = await response.json();
       expect(body.mcpReady).toBe(true);
     });
@@ -283,7 +283,7 @@ describe('Worker API Endpoints Integration', () => {
   describe('Server Lifecycle', () => {
     it('should start listening on specified port', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       const httpServer = server.getHttpServer();
       expect(httpServer).not.toBeNull();
@@ -292,10 +292,10 @@ describe('Worker API Endpoints Integration', () => {
 
     it('should close gracefully', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Verify it's running
-      const response = await fetch(`http://127.0.0.1:${testPort}/api/health`);
+      const response = await fetch(`http://localhost:${testPort}/api/health`);
       expect(response.status).toBe(200);
 
       // Close
@@ -316,10 +316,10 @@ describe('Worker API Endpoints Integration', () => {
       server = new Server(mockOptions);
       const server2 = new Server(mockOptions);
 
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Second server should fail on same port
-      await expect(server2.listen(testPort, '127.0.0.1')).rejects.toThrow();
+      await expect(server2.listen(testPort, 'localhost')).rejects.toThrow();
 
       // Clean up second server if it has a reference
       const httpServer2 = server2.getHttpServer();
@@ -330,7 +330,7 @@ describe('Worker API Endpoints Integration', () => {
 
     it('should allow restart on same port after close', async () => {
       server = new Server(mockOptions);
-      await server.listen(testPort, '127.0.0.1');
+      await server.listen(testPort, 'localhost');
 
       // Close first server
       try {
@@ -344,7 +344,7 @@ describe('Worker API Endpoints Integration', () => {
 
       // Start second server on same port
       const server2 = new Server(mockOptions);
-      await server2.listen(testPort, '127.0.0.1');
+      await server2.listen(testPort, 'localhost');
 
       expect(server2.getHttpServer()!.listening).toBe(true);
 
